@@ -99,6 +99,7 @@ namespace WebLearningOffline
             CheckForIllegalCrossThreadCalls = false;
             textBox1.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             checkedListBox2.DoubleBuffered(true);
+            checkedListBox2.DoubleBuffering(true);
             new Thread(new ThreadStart(LoadCourses)).Start();
         }
 
@@ -221,20 +222,24 @@ namespace WebLearningOffline
 
         void run()
         {
+            SystemSleepManagement.PreventSleep(false);
             var threads = new Thread[6];
             lock (varlock)
             {
                 for (int i = 0; i < threads.Length; i++)
                 {
+                    var tcookies = new CookieCollection();
+                    tcookies.Add(cookies);
                     threads[i] = new Thread(new ParameterizedThreadStart(work));
-                    threads[i].Start(cookies);
+                    threads[i].Start(tcookies);
                 }
             }
             for(int i = 0; i < threads.Length; i++)
             {
                 threads[i].Join();
             }
-            if (haserror > 0) MessageBox.Show("成功" + finished + "个，失败" + haserror + "个。详见课程列表。\r\n重新运行本程序，可以尝试下载出错的课程。");
+            SystemSleepManagement.ResotreSleep();
+            if (haserror > 0) MessageBox.Show("成功" + finished + "个，失败" + haserror + "个。详见课程列表。\r\n重新登录，可以再次下载出错的课程。");
             else MessageBox.Show(finished + "个全部成功！");
             button2.Text = "重新登录";
             button2.Enabled = true;
@@ -265,36 +270,89 @@ namespace WebLearningOffline
                     Directory.CreateDirectory(home);
                     home += "/";
 
-                    listitem(i, "获取课程模块列表");
-                    var course_locate = Http.Get("http://learn.tsinghua.edu.cn/MultiLanguage/lesson/student/course_locate.jsp?course_id=" + course.id, out mycookies, cookiesin: mycookies);
-                    if (course_locate.Contains("getnoteid_student"))
+                    if (!course.isnew)
                     {
-                        listitem(i, "获取课程公告列表");
-                        var array = initdict(course);
-                        var note = Http.Get("http://learn.tsinghua.edu.cn/MultiLanguage/public/bbs/getnoteid_student.jsp?course_id=" + course.id, out mycookies, cookiesin: mycookies);
-                        var trs=Regex.Matches(note, @"<tr class=.tr\d?.+?>(.+?)<\/tr>", RegexOptions.Singleline);
-                        var list = new List<Dictionary<string, object>>();
-                        for (int j=0;j<trs.Count;j++)
+                        listitem(i, "正在下载");
+                        var course_locate = Http.Get("http://learn.tsinghua.edu.cn/MultiLanguage/lesson/student/course_locate.jsp?course_id=" + course.id, out mycookies, cookiesin: mycookies);
+                        if (course_locate.Contains("getnoteid_student"))
                         {
-                            var tr = trs[j];
-                            var tnote = new Dictionary<string, object>();
-                            var tds = Regex.Matches(tr.Groups[1].Value, @"<td.*?>(.*?)<\/td>",RegexOptions.Singleline);
-                            tnote.Add("NoteNumber", tds[0].Groups[1].Value);
-                            tnote.Add("NoteCaption",Regex.Match(tds[1].Groups[1].Value, @"<a.*?>(.*?)<\/a>", RegexOptions.Singleline).Groups[1].Value);
-                            tnote.Add("NoteAuthor", tds[2].Groups[1].Value);
-                            tnote.Add("NoteDate", tds[3].Groups[1].Value);
-                            var noteid = Regex.Match(tr.Groups[1].Value, @"href='(.+?)'").Groups[1].Value;
-                            var notecontent= Http.Get("http://learn.tsinghua.edu.cn/MultiLanguage/public/bbs/"+noteid, out mycookies, cookiesin: mycookies);
-                            var body = Regex.Matches(notecontent, @"<td.+?tr_l2.+?>(.*?)<\/td>",RegexOptions.Singleline)[1].Groups[1].Value;
-                            tnote.Add("NoteBody", body);
-                            list.Add(tnote);
+                            var array = initdict(course);
+                            var note = Http.Get("http://learn.tsinghua.edu.cn/MultiLanguage/public/bbs/getnoteid_student.jsp?course_id=" + course.id, out mycookies, cookiesin: mycookies);
+                            var trs = Regex.Matches(note, @"<tr class=.tr\d?.+?>(.+?)<\/tr>", RegexOptions.Singleline);
+                            var list = new List<Dictionary<string, object>>();
+                            for (int j = 0; j < trs.Count; j++)
+                            {
+                                var tr = trs[j];
+                                var tnote = new Dictionary<string, object>();
+                                var tds = Regex.Matches(tr.Groups[1].Value, @"<td.*?>(.*?)<\/td>", RegexOptions.Singleline);
+                                tnote.Add("NoteNumber", tds[0].Groups[1].Value);
+                                tnote.Add("NoteCaption", Regex.Match(tds[1].Groups[1].Value, @"<a.*?>(.*?)<\/a>", RegexOptions.Singleline).Groups[1].Value);
+                                tnote.Add("NoteAuthor", tds[2].Groups[1].Value);
+                                tnote.Add("NoteDate", tds[3].Groups[1].Value);
+                                var noteid = Regex.Match(tr.Groups[1].Value, @"href='(.+?)'").Groups[1].Value;
+                                var notecontent = Http.Get("http://learn.tsinghua.edu.cn/MultiLanguage/public/bbs/" + noteid, out mycookies, cookiesin: mycookies);
+                                var body = Regex.Matches(notecontent, @"<td.+?tr_l2.+?>(.*?)<\/td>", RegexOptions.Singleline)[1].Groups[1].Value;
+                                tnote.Add("NoteBody", body);
+                                list.Add(tnote);
+                            }
+                            array.Add("Notes", list);
+                            writehtml("课程公告.html", home + "课程公告.html", array);
                         }
-                        array.Add("Notes", list);
-                        writehtml("课程公告.html", home + "课程公告.html", array);
+                        if (course_locate.Contains("course_info"))
+                        {
+                            var array = initdict(course);
+                            var info = Http.Get("http://learn.tsinghua.edu.cn/MultiLanguage/lesson/student/course_info.jsp?course_id=" + course.id, out mycookies, cookiesin: mycookies);
+                            info = Regex.Match(info, @"(<table id.+?\/table>)", RegexOptions.Singleline).Groups[1].Value;
+                            info = Regex.Replace(info, @"<img.+?>", "");
+                            array.Add("InfoBody", info);
+                            writehtml("课程信息.html", home + "课程信息.html", array);
+                        }
+                        if (course_locate.Contains("download"))
+                        {
+                            var array = initdict(course);
+                            var page= Http.Get("http://learn.tsinghua.edu.cn/MultiLanguage/lesson/student/download.jsp?course_id=" + course.id, out mycookies, cookiesin: mycookies);
+                            var classes = Regex.Matches(page, @"<td class=.textTD.+?>(.*?)<\/td>",RegexOptions.Singleline);
+                            var layers = Regex.Matches(page, @"<div class=.layerbox.+?>(.*?)<\/div>",RegexOptions.Singleline);
+                            var list = new List<Dictionary<string, object>>();
+                            for (int j= 0;j < layers.Count;j++)
+                            {
+                                var classname = classes[j].Groups[1].Value;
+                                var trs = Regex.Matches(layers[j].Groups[1].Value, @"<tr class=.tr\d?.>(.*?)<\/tr>", RegexOptions.Singleline);
+                                foreach (Match tr in trs)
+                                {
+                                    var tfile = new Dictionary<string, object>();
+                                    var tds = Regex.Matches(tr.Groups[1].Value, @"<td.*?>(.*?)<\/td>", RegexOptions.Singleline);
+                                    tfile.Add("FileClass", classname);
+                                    tfile.Add("FileNumber", tds[0].Groups[1].Value);
+                                    var filetitle = Regex.Match(tds[2].Groups[1].Value, @"<a.+?>(.*?)<\/a>", RegexOptions.Singleline).Groups[1].Value;
+                                    tfile.Add("FileTitle", filetitle);
+                                    var filename = Regex.Match(tds[1].Groups[1].Value, @"getfilelink=(.+?)&").Groups[1].Value;
+                                    tfile.Add("FileName", filename);
+                                    tfile.Add("FileComment", tds[3].Groups[1].Value);
+                                    tfile.Add("FileSize", tds[4].Groups[1].Value);
+                                    tfile.Add("FileDate", tds[5].Groups[1].Value);
+                                    var url = "http://learn.tsinghua.edu.cn" + Regex.Match(tds[2].Groups[1].Value, "href=\"(.*?)\"").Groups[1].Value;
+                                    tfile.Add("FileUrl", url);
+                                    list.Add(tfile);
+                                }
+                            }
+                            array.Add("Files", list);
+                            writehtml("课程文件.html", home + "课程文件.html", array);
+                        }
+                        if (course_locate.Contains("hom_wk_brw"))
+                        {
+                            var array = initdict(course);
+                            var page = Http.Get("http://learn.tsinghua.edu.cn/MultiLanguage/lesson/student/hom_wk_brw.jsp?course_id=" + course.id, out mycookies, cookiesin: mycookies);
+
+                        }
+                    }
+                    else
+                    {
+
                     }
                     listitem(i, "成功");
                 }
-                catch (Exception ex)
+                catch (FormatException ex)
                 {
                     listitem(i, "失败：" + ex.Message);
                     lock (varlock)
@@ -411,6 +469,11 @@ namespace WebLearningOffline
         {
             var doubleBufferPropertyInfo = control.GetType().GetProperty("DoubleBuffered", BindingFlags.Instance | BindingFlags.NonPublic);
             doubleBufferPropertyInfo.SetValue(control, enable, null);
+        }
+        public static void DoubleBuffering(this Control control, bool enable)
+        {
+            var method = typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic);
+            method.Invoke(control, new object[] { ControlStyles.OptimizedDoubleBuffer, enable });
         }
     }
 }

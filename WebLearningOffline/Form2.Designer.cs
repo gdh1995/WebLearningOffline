@@ -92,10 +92,7 @@
             "课程公告",
             "课程信息",
             "课程文件",
-            "教学资源",
-            "课程作业",
-            "课程答疑",
-            "课程讨论"});
+            "课程作业"});
             this.checkedListBox1.Location = new System.Drawing.Point(12, 42);
             this.checkedListBox1.Margin = new System.Windows.Forms.Padding(6);
             this.checkedListBox1.Name = "checkedListBox1";
