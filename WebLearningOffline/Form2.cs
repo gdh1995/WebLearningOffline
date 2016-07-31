@@ -314,6 +314,7 @@ namespace WebLearningOffline
                             var classes = Regex.Matches(page, @"<td class=.textTD.+?>(.*?)<\/td>",RegexOptions.Singleline);
                             var layers = Regex.Matches(page, @"<div class=.layerbox.+?>(.*?)<\/div>",RegexOptions.Singleline);
                             var list = new List<Dictionary<string, object>>();
+                            Directory.CreateDirectory(home + "课程文件");
                             for (int j= 0;j < layers.Count;j++)
                             {
                                 var classname = classes[j].Groups[1].Value;
@@ -333,6 +334,9 @@ namespace WebLearningOffline
                                     tfile.Add("FileDate", tds[5].Groups[1].Value);
                                     var url = "http://learn.tsinghua.edu.cn" + Regex.Match(tds[2].Groups[1].Value, "href=\"(.*?)\"").Groups[1].Value;
                                     tfile.Add("FileUrl", url);
+                                    var local = "课程文件" + Path.DirectorySeparatorChar + filename;
+                                    tfile.Add("FileLocal", local);
+                                    downfile(url, home+local, mycookies);
                                     list.Add(tfile);
                                 }
                             }
@@ -602,6 +606,22 @@ namespace WebLearningOffline
             return ret.ToString();
         }
 
+        void downfile(string url,string file,CookieCollection cookies)
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                try
+                {
+                    using (var wc = new CookieAwareWebClient(cookies))
+                        wc.DownloadFile(url, file);
+                }
+                catch (Exception e)
+                {
+                    if (i == 4) throw e;
+                }
+            }
+        }
+
         private void Form2_FormClosing(object sender, FormClosingEventArgs e)
         {
             Environment.Exit(0);
@@ -619,6 +639,26 @@ namespace WebLearningOffline
         {
             var method = typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic);
             method.Invoke(control, new object[] { ControlStyles.OptimizedDoubleBuffer, enable });
+        }
+    }
+    public class CookieAwareWebClient : WebClient
+    {
+        public CookieContainer m_container = new CookieContainer();
+
+        public CookieAwareWebClient(CookieCollection cookies)
+        {
+            m_container.Add(cookies);
+        }
+
+        protected override WebRequest GetWebRequest(Uri address)
+        {
+            WebRequest request = base.GetWebRequest(address);
+            HttpWebRequest webRequest = request as HttpWebRequest;
+            if (webRequest != null)
+            {
+                webRequest.CookieContainer = m_container;
+            }
+            return request;
         }
     }
 }
