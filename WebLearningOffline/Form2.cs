@@ -274,7 +274,7 @@ namespace WebLearningOffline
                     {
                         listitem(i, "正在下载");
                         var course_locate = Http.Get("http://learn.tsinghua.edu.cn/MultiLanguage/lesson/student/course_locate.jsp?course_id=" + course.id, out mycookies, cookiesin: mycookies);
-                        if (course_locate.Contains("getnoteid_student"))
+                        if (course_locate.Contains("getnoteid_student")&&checkedListBox1.GetItemChecked(1))
                         {
                             var array = initdict(course);
                             var note = Http.Get("http://learn.tsinghua.edu.cn/MultiLanguage/public/bbs/getnoteid_student.jsp?course_id=" + course.id, out mycookies, cookiesin: mycookies);
@@ -298,7 +298,7 @@ namespace WebLearningOffline
                             array.Add("Notes", list);
                             writehtml("课程公告.html", home + "课程公告.html", array);
                         }
-                        if (course_locate.Contains("course_info"))
+                        if (course_locate.Contains("course_info") && checkedListBox1.GetItemChecked(2))
                         {
                             var array = initdict(course);
                             var info = Http.Get("http://learn.tsinghua.edu.cn/MultiLanguage/lesson/student/course_info.jsp?course_id=" + course.id, out mycookies, cookiesin: mycookies);
@@ -307,7 +307,7 @@ namespace WebLearningOffline
                             array.Add("InfoBody", info);
                             writehtml("课程信息.html", home + "课程信息.html", array);
                         }
-                        if (course_locate.Contains("download"))
+                        if (course_locate.Contains("download") && checkedListBox1.GetItemChecked(3))
                         {
                             var array = initdict(course);
                             var page= Http.Get("http://learn.tsinghua.edu.cn/MultiLanguage/lesson/student/download.jsp?course_id=" + course.id, out mycookies, cookiesin: mycookies);
@@ -339,11 +339,109 @@ namespace WebLearningOffline
                             array.Add("Files", list);
                             writehtml("课程文件.html", home + "课程文件.html", array);
                         }
-                        if (course_locate.Contains("hom_wk_brw"))
+                        if (course_locate.Contains("hom_wk_brw") && checkedListBox1.GetItemChecked(4))
                         {
                             var array = initdict(course);
                             var page = Http.Get("http://learn.tsinghua.edu.cn/MultiLanguage/lesson/student/hom_wk_brw.jsp?course_id=" + course.id, out mycookies, cookiesin: mycookies);
-
+                            var items = Regex.Matches(page, @"<tr class=.tr\d?.>(.+?)<\/tr>", RegexOptions.Singleline);
+                            var list = new List<Dictionary<string, object>>();
+                            for(int j = 0; j < items.Count; j++)
+                            {
+                                var thwk = new Dictionary<string, object>();
+                                var tds = Regex.Matches(items[j].Groups[1].Value, @"<td.*?>(.*?)<\/td>",RegexOptions.Singleline);
+                                var name = Regex.Match(tds[0].Groups[1].Value, @"<a.*?>(.*?)<\/a>",RegexOptions.Singleline).Groups[1].Value;
+                                thwk.Add("HomeworkName", name);
+                                thwk.Add("HomeworkStart", tds[1].Groups[1].Value);
+                                thwk.Add("HomeworkEnd", tds[2].Groups[1].Value);
+                                thwk.Add("HomeworkSubmitted", tds[3].Groups[1].Value.Contains("已经") ? "Yes": "No");
+                                var scored = Regex.Match(tds[5].Groups[1].Value, "查看批阅\" (.)").Groups[1].Value != "d";
+                                thwk.Add("HomeworkScored", scored ? "Yes" : "No");
+                                var detailurl= "http://learn.tsinghua.edu.cn/MultiLanguage/lesson/student/" + Regex.Match(tds[0].Groups[1].Value, "href=\"(.*?)\"").Groups[1].Value;
+                                var detailpage = Http.Get(detailurl, out mycookies, cookiesin: mycookies);
+                                var content = Regex.Matches(detailpage, @"<textarea.*?>(.*?)<\/textarea>",RegexOptions.Singleline)[0].Groups[1].Value;
+                                thwk.Add("HomeworkHandout", content);
+                                thwk.Add("HomeworkHasHandout", content.Trim() != ""?"Yes":"No");
+                                var handin = Regex.Matches(detailpage, @"<textarea.*?>(.*?)<\/textarea>", RegexOptions.Singleline)[1].Groups[1].Value;
+                                thwk.Add("HomeworkHandin", handin);
+                                thwk.Add("HomeworkHasHandin", handin.Trim() != "" ? "Yes" : "No");
+                                var trs = Regex.Matches(detailpage, @"<tr>(.*?)<\/tr>",RegexOptions.Singleline);
+                                var attn = "";
+                                var attnname = "";
+                                var upattn = "";
+                                var upattnname = "";
+                                foreach (Match tr in trs)
+                                {
+                                    var inner = tr.Groups[1].Value;
+                                    if(inner.Contains("> 作业附件<"))
+                                    {
+                                        var tmatch = Regex.Match(inner, "href=\"(.*?)\"");
+                                        if (tmatch.Success) attn = "http://learn.tsinghua.edu.cn" + tmatch.Groups[1].Value;
+                                        tmatch = Regex.Match(inner, @"<a.*?>(.*?)<\/a>",RegexOptions.Singleline);
+                                        if (tmatch.Success) attnname = tmatch.Groups[1].Value;
+                                    }
+                                    if (inner.Contains(">上交作业附件<"))
+                                    {
+                                        var tmatch = Regex.Match(inner, "href=\"(.*?)\"");
+                                        if (tmatch.Success) upattn = "http://learn.tsinghua.edu.cn" + tmatch.Groups[1].Value;
+                                        tmatch = Regex.Match(inner, @"<a.*?>(.*?)<\/a>",RegexOptions.Singleline);
+                                        if (tmatch.Success) upattnname = tmatch.Groups[1].Value;
+                                    }
+                                }
+                                thwk.Add("HomeworkHasAttnOut", attn != "" ? "Yes" : "No");
+                                thwk.Add("HomeworkAttnOut", attn);
+                                thwk.Add("HomeworkAttnOutName", attnname);
+                                thwk.Add("HomeworkHasAttnIn", upattn != "" ? "Yes" : "No");
+                                thwk.Add("HomeworkAttnIn", upattn);
+                                thwk.Add("HomeworkAttnInName", upattnname);
+                                if (scored)
+                                {
+                                    var url = "http://learn.tsinghua.edu.cn/MultiLanguage/lesson/student/hom_wk_view.jsp?" + Regex.Match(page, @"hom_wk_view.jsp\?(.+?)'").Groups[1].Value;
+                                    var scorepage = Http.Get(url, out mycookies, cookiesin: mycookies);
+                                    trs = Regex.Matches(scorepage, @"<tr.*?>(.*?)<\/tr>",RegexOptions.Singleline);
+                                    string teacher = "", date = "", score = "", comment = "", file = "", filename="";
+                                    foreach (Match tr in trs)
+                                    {
+                                        var inner = tr.Groups[1].Value;
+                                        if (inner.Contains("批阅老师"))
+                                        {
+                                            var tmatch = Regex.Matches(inner, @"<td.*?>(.*?)<\/td>",RegexOptions.Singleline);
+                                            teacher = tmatch[1].Groups[1].Value;
+                                        }
+                                        else if (inner.Contains("批阅日期"))
+                                        {
+                                            var tmatch = Regex.Matches(inner, @"<td.*?>(.*?)<\/td>", RegexOptions.Singleline);
+                                            date = tmatch[1].Groups[1].Value;
+                                        }
+                                        else if (inner.Contains("得分"))
+                                        {
+                                            var tmatch = Regex.Matches(inner, @"<td.*?>(.*?)<\/td>", RegexOptions.Singleline);
+                                            score = tmatch[1].Groups[1].Value;
+                                        }
+                                        else if (inner.Contains(">评语<"))
+                                        {
+                                            var tmatch = Regex.Match(inner, @"<textarea.*?>(.*?)<\/textarea>", RegexOptions.Singleline);
+                                            comment = tmatch.Groups[1].Value;
+                                        }
+                                        else if (inner.Contains("评语附件"))
+                                        {
+                                            var tmatch = Regex.Match(inner, "href=\"(.*?)\"");
+                                            if (tmatch.Success) file = "http://learn.tsinghua.edu.cn" + tmatch.Groups[1].Value;
+                                            tmatch = Regex.Match(inner, @"<a.*?>(.*?)<\/a>", RegexOptions.Singleline);
+                                            if (tmatch.Success) filename = tmatch.Groups[1].Value;
+                                        }
+                                    }
+                                    thwk.Add("HomeworkScorer", teacher);
+                                    thwk.Add("HomeworkScoreDate", date);
+                                    thwk.Add("HomeworkScore", score);
+                                    thwk.Add("HomeworkScoreComment", comment);
+                                    thwk.Add("HomeworkScoreHasAttn", file != "" ? "Yes": "No");
+                                    thwk.Add("HomeworkScoreAttn", file);
+                                    thwk.Add("HomeworkScoreAttnName", filename);
+                                }
+                                list.Add(thwk);
+                            }
+                            array.Add("Homeworks", list);
+                            writehtml("课程作业.html", home + "课程作业.html", array);
                         }
                     }
                     else
@@ -352,7 +450,7 @@ namespace WebLearningOffline
                     }
                     listitem(i, "成功");
                 }
-                catch (FormatException ex)
+                catch (Exception ex)
                 {
                     listitem(i, "失败：" + ex.Message);
                     lock (varlock)
@@ -432,6 +530,8 @@ namespace WebLearningOffline
             var ret = new StringBuilder();
             var varname = new StringBuilder();
             var building = false;
+            var iifstage = 0;
+            var iifresult = false;
             str += " ";
             foreach(var c in str)
             {
@@ -442,15 +542,64 @@ namespace WebLearningOffline
                     {
                         var aname = varname.ToString();
                         if (!array.ContainsKey(aname)) throw new Exception("模板错误 没有变量" + aname);
-                        ret.Append(array[aname]);
-                        ret.Append(c);
                         building = false;
                         varname = new StringBuilder();
+                        if (c == '?')
+                        {
+                            iifresult = ((string)array[aname] == "Yes");
+                            iifstage = 1;
+                        }
+                        else
+                        {
+                            ret.Append(array[aname]);
+                            ret.Append(c);
+                        }
                     }
                 }else
                 {
-                    if (c != '$') ret.Append(c);
-                    else building = true;
+                    if (iifstage == 0)
+                    {
+                        if (c == '$') building = true;
+                        else ret.Append(c);
+                    }
+                    if (iifstage == 1)
+                    {
+                        if (c == ':') iifstage = 2;
+                        else if (iifresult == true)
+                        {
+                            if (c == '$') building = true;
+                            else ret.Append(c);
+                        }
+                    }
+                    else if(iifstage==2)
+                    {
+                        if (c == ':') iifstage = 3;
+                        else if (iifresult == true)
+                        {
+                            ret.Append(':');
+                            if (c == '$') building = true;
+                            else ret.Append(c);
+                        }
+                    }
+                    else if (iifstage == 3)
+                    {
+                        if (c == ':') iifstage = 4;
+                        else if (iifresult == false)
+                        {
+                            if (c == '$') building = true;
+                            else ret.Append(c);
+                        }
+                    }
+                    else if (iifstage == 4)
+                    {
+                        if (c == ':') iifstage = 0;
+                        else if (iifresult == false)
+                        {
+                            ret.Append(':');
+                            if (c == '$') building = true;
+                            else ret.Append(c);
+                        }
+                    }
                 }
             }
             ret.Remove(ret.Length - 1, 1);
