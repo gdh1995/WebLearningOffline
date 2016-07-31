@@ -275,7 +275,7 @@ namespace WebLearningOffline
                     {
                         listitem(i, "正在下载");
                         var course_locate = Http.Get("http://learn.tsinghua.edu.cn/MultiLanguage/lesson/student/course_locate.jsp?course_id=" + course.id, out mycookies, cookiesin: mycookies);
-                        if (course_locate.Contains("getnoteid_student")&&checkedListBox1.GetItemChecked(1))
+                        if (course_locate.Contains("getnoteid_student")&&checkedListBox1.GetItemChecked(1)&&!File.Exists(home+"课程公告.html"))
                         {
                             var array = initdict(course);
                             var note = Http.Get("http://learn.tsinghua.edu.cn/MultiLanguage/public/bbs/getnoteid_student.jsp?course_id=" + course.id, out mycookies, cookiesin: mycookies);
@@ -299,7 +299,7 @@ namespace WebLearningOffline
                             array.Add("Notes", list);
                             writehtml("课程公告.html", home + "课程公告.html", array);
                         }
-                        if (course_locate.Contains("course_info") && checkedListBox1.GetItemChecked(2))
+                        if (course_locate.Contains("course_info") && checkedListBox1.GetItemChecked(2) && !File.Exists(home + "课程信息.html"))
                         {
                             var array = initdict(course);
                             var info = Http.Get("http://learn.tsinghua.edu.cn/MultiLanguage/lesson/student/course_info.jsp?course_id=" + course.id, out mycookies, cookiesin: mycookies);
@@ -308,7 +308,7 @@ namespace WebLearningOffline
                             array.Add("InfoBody", info);
                             writehtml("课程信息.html", home + "课程信息.html", array);
                         }
-                        if (course_locate.Contains("download") && checkedListBox1.GetItemChecked(3))
+                        if (course_locate.Contains("download") && checkedListBox1.GetItemChecked(3) && !File.Exists(home + "课程文件.html"))
                         {
                             var array = initdict(course);
                             var page= Http.Get("http://learn.tsinghua.edu.cn/MultiLanguage/lesson/student/download.jsp?course_id=" + course.id, out mycookies, cookiesin: mycookies);
@@ -344,7 +344,7 @@ namespace WebLearningOffline
                             array.Add("Files", list);
                             writehtml("课程文件.html", home + "课程文件.html", array);
                         }
-                        if (course_locate.Contains("hom_wk_brw") && checkedListBox1.GetItemChecked(4))
+                        if (course_locate.Contains("hom_wk_brw") && checkedListBox1.GetItemChecked(4) && !File.Exists(home + "课程作业.html"))
                         {
                             var array = initdict(course);
                             var page = Http.Get("http://learn.tsinghua.edu.cn/MultiLanguage/lesson/student/hom_wk_brw.jsp?course_id=" + course.id, out mycookies, cookiesin: mycookies);
