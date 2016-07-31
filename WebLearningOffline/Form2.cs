@@ -223,7 +223,7 @@ namespace WebLearningOffline
         void run()
         {
             SystemSleepManagement.PreventSleep(false);
-            var threads = new Thread[6];
+            var threads = new Thread[5];
             lock (varlock)
             {
                 for (int i = 0; i < threads.Length; i++)
@@ -395,7 +395,7 @@ namespace WebLearningOffline
                                 thwk.Add("HomeworkAttnInName", upattnname);
                                 if (scored)
                                 {
-                                    var url = "http://learn.tsinghua.edu.cn/MultiLanguage/lesson/student/hom_wk_view.jsp?" + Regex.Match(page, @"hom_wk_view.jsp\?(.+?)'").Groups[1].Value;
+                                    var url = "http://learn.tsinghua.edu.cn/MultiLanguage/lesson/student/hom_wk_view.jsp?" + Regex.Match(items[j].Groups[1].Value, @"hom_wk_view.jsp\?(.+?)'").Groups[1].Value;
                                     var scorepage = Http.Get(url, out mycookies, cookiesin: mycookies);
                                     trs = Regex.Matches(scorepage, @"<tr.*?>(.*?)<\/tr>",RegexOptions.Singleline);
                                     string teacher = "", date = "", score = "", comment = "", file = "", filename="";
@@ -406,11 +406,7 @@ namespace WebLearningOffline
                                         {
                                             var tmatch = Regex.Matches(inner, @"<td.*?>(.*?)<\/td>",RegexOptions.Singleline);
                                             teacher = tmatch[1].Groups[1].Value;
-                                        }
-                                        else if (inner.Contains("批阅日期"))
-                                        {
-                                            var tmatch = Regex.Matches(inner, @"<td.*?>(.*?)<\/td>", RegexOptions.Singleline);
-                                            date = tmatch[1].Groups[1].Value;
+                                            date = tmatch[3].Groups[1].Value;
                                         }
                                         else if (inner.Contains("得分"))
                                         {
@@ -562,7 +558,7 @@ namespace WebLearningOffline
                         if (c == '$') building = true;
                         else ret.Append(c);
                     }
-                    if (iifstage == 1)
+                    else if (iifstage == 1)
                     {
                         if (c == ':') iifstage = 2;
                         else if (iifresult == true)
