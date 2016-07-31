@@ -11,6 +11,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.IO;
 using System.Reflection;
+using System.Web;
 
 namespace WebLearningOffline
 {
@@ -268,7 +269,7 @@ namespace WebLearningOffline
                     Directory.CreateDirectory(home);
                     home += Path.DirectorySeparatorChar + safepath(course.name);
                     Directory.CreateDirectory(home);
-                    home += "/";
+                    home += Path.DirectorySeparatorChar;
 
                     if (!course.isnew)
                     {
@@ -334,7 +335,7 @@ namespace WebLearningOffline
                                     tfile.Add("FileDate", tds[5].Groups[1].Value);
                                     var url = "http://learn.tsinghua.edu.cn" + Regex.Match(tds[2].Groups[1].Value, "href=\"(.*?)\"").Groups[1].Value;
                                     tfile.Add("FileUrl", url);
-                                    var local = "课程文件" + Path.DirectorySeparatorChar + filename;
+                                    var local = "课程文件" + Path.DirectorySeparatorChar + safepath(filename);
                                     tfile.Add("FileLocal", local);
                                     downfile(url, home+local, mycookies);
                                     list.Add(tfile);
@@ -349,12 +350,14 @@ namespace WebLearningOffline
                             var page = Http.Get("http://learn.tsinghua.edu.cn/MultiLanguage/lesson/student/hom_wk_brw.jsp?course_id=" + course.id, out mycookies, cookiesin: mycookies);
                             var items = Regex.Matches(page, @"<tr class=.tr\d?.>(.+?)<\/tr>", RegexOptions.Singleline);
                             var list = new List<Dictionary<string, object>>();
+                            Directory.CreateDirectory(home + "课程作业");
                             for(int j = 0; j < items.Count; j++)
                             {
                                 var thwk = new Dictionary<string, object>();
                                 var tds = Regex.Matches(items[j].Groups[1].Value, @"<td.*?>(.*?)<\/td>",RegexOptions.Singleline);
                                 var name = Regex.Match(tds[0].Groups[1].Value, @"<a.*?>(.*?)<\/a>",RegexOptions.Singleline).Groups[1].Value;
                                 thwk.Add("HomeworkName", name);
+                                Directory.CreateDirectory(home + "课程作业" + Path.DirectorySeparatorChar + safepath(name));
                                 thwk.Add("HomeworkStart", tds[1].Groups[1].Value);
                                 thwk.Add("HomeworkEnd", tds[2].Groups[1].Value);
                                 thwk.Add("HomeworkSubmitted", tds[3].Groups[1].Value.Contains("已经") ? "Yes": "No");
@@ -394,9 +397,23 @@ namespace WebLearningOffline
                                 thwk.Add("HomeworkHasAttnOut", attn != "" ? "Yes" : "No");
                                 thwk.Add("HomeworkAttnOut", attn);
                                 thwk.Add("HomeworkAttnOutName", attnname);
+                                if (attn != "")
+                                {
+                                    var aolocal = home + "课程作业" + Path.DirectorySeparatorChar + safepath(name) + Path.DirectorySeparatorChar + safepath(attnname);
+                                    thwk.Add("HomeworkAttnOutLocal", aolocal);
+                                    downfile(attn, aolocal, mycookies);
+                                }
+                                else thwk.Add("HomeworkAttnOutLocal", "");
                                 thwk.Add("HomeworkHasAttnIn", upattn != "" ? "Yes" : "No");
                                 thwk.Add("HomeworkAttnIn", upattn);
                                 thwk.Add("HomeworkAttnInName", upattnname);
+                                if (upattn != "")
+                                {
+                                    var ailocal = home + "课程作业" + Path.DirectorySeparatorChar + safepath(name) + Path.DirectorySeparatorChar + safepath(upattnname);
+                                    thwk.Add("HomeworkAttnInLocal", ailocal);
+                                    downfile(upattn, ailocal, mycookies);
+                                }
+                                else thwk.Add("HomeworkAttnInLocal", "");
                                 if (scored)
                                 {
                                     var url = "http://learn.tsinghua.edu.cn/MultiLanguage/lesson/student/hom_wk_view.jsp?" + Regex.Match(items[j].Groups[1].Value, @"hom_wk_view.jsp\?(.+?)'").Groups[1].Value;
@@ -437,6 +454,13 @@ namespace WebLearningOffline
                                     thwk.Add("HomeworkScoreHasAttn", file != "" ? "Yes": "No");
                                     thwk.Add("HomeworkScoreAttn", file);
                                     thwk.Add("HomeworkScoreAttnName", filename);
+                                    if (file != "")
+                                    {
+                                        var aslocal = home + "课程作业" + Path.DirectorySeparatorChar + safepath(name) + Path.DirectorySeparatorChar + safepath(filename);
+                                        thwk.Add("HomeworkScoreAttnLocal", aslocal);
+                                        downfile(file, aslocal, mycookies);
+                                    }
+                                    else thwk.Add("HomeworkScoreAttnLocal", "");
                                 }
                                 list.Add(thwk);
                             }
@@ -450,7 +474,7 @@ namespace WebLearningOffline
                     }
                     listitem(i, "成功");
                 }
-                catch (Exception ex)
+                catch (FormatException ex)
                 {
                     listitem(i, "失败：" + ex.Message);
                     lock (varlock)
@@ -469,6 +493,7 @@ namespace WebLearningOffline
 
         static string safepath(string s)
         {
+            s = HttpUtility.HtmlDecode(s);
             foreach (var c in Path.GetInvalidPathChars().Union(Path.GetInvalidFileNameChars()))
             {
                 s = s.Replace(c, ' ');
@@ -614,6 +639,7 @@ namespace WebLearningOffline
                 {
                     using (var wc = new CookieAwareWebClient(cookies))
                         wc.DownloadFile(url, file);
+                    break;
                 }
                 catch (Exception e)
                 {
