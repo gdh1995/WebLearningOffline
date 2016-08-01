@@ -93,6 +93,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="网络学堂.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="课程作业.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

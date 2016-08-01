@@ -35,6 +35,7 @@ namespace WebLearningOffline
         int finished = 0;
         int totaltask = 0;
         object varlock = new object();
+        List<Dictionary<string, object>> mainlist = null;
 
         public Form2(Form1 form1)
         {
@@ -225,6 +226,15 @@ namespace WebLearningOffline
         {
             SystemSleepManagement.PreventSleep(false);
             var threads = new Thread[5];
+            var main = new Dictionary<string, object>();
+            var info = Http.Get("http://learn.tsinghua.edu.cn/MultiLanguage/vspace/vspace_userinfo1.jsp", out cookies, cookiesin: cookies);
+            var match = Regex.Match(info, @"学生姓名<.*?tr_l2.>(.*?)<", RegexOptions.Singleline);
+            var name = match.Success ? match.Groups[1].Value : "";
+            match = Regex.Match(info, @"学生编号<.*?tr_l.>(.*?)<", RegexOptions.Singleline);
+            var id = match.Success ? match.Groups[1].Value : "";
+            main.Add("StudentName", name);
+            main.Add("StudentID", id);
+            mainlist = new List<Dictionary<string, object>>();
             lock (varlock)
             {
                 for (int i = 0; i < threads.Length; i++)
@@ -239,6 +249,10 @@ namespace WebLearningOffline
             {
                 threads[i].Join();
             }
+            main.Add("StudentCourses", mainlist);
+            var bp = textBox1.Text;
+            if (!bp.EndsWith(Path.DirectorySeparatorChar + "")) bp += Path.DirectorySeparatorChar;
+            writehtml("网络学堂.html", bp + "网络学堂.html", main);
             SystemSleepManagement.ResotreSleep();
             if (haserror > 0) MessageBox.Show("成功" + finished + "个，失败" + haserror + "个。详见课程列表。\r\n重新登录，可以再次下载出错的课程。");
             else MessageBox.Show(finished + "个全部成功！");
@@ -262,6 +276,7 @@ namespace WebLearningOffline
                     nextjob++;
                 }
                 if (!courses[i].selected) continue;
+                Dictionary<string, object> titem = null;
                 try
                 {
                     var course = courses[i];
@@ -473,6 +488,12 @@ namespace WebLearningOffline
 
                     }
                     listitem(i, "成功");
+                    titem = initdict(course);
+                    titem.Add("HasNotes", File.Exists(home + "课程公告.html") ? "Yes" : "No");
+                    titem.Add("HasInfo", File.Exists(home + "课程信息.html") ? "Yes" : "No");
+                    titem.Add("HasDownload", File.Exists(home + "课程文件.html") ? "Yes" : "No");
+                    titem.Add("HasHomework", File.Exists(home + "课程作业.html") ? "Yes" : "No");
+                    titem.Add("BasePath", safepath(course.term) + '/' + safepath(course.name));
                 }
                 catch (FormatException ex)
                 {
@@ -485,6 +506,7 @@ namespace WebLearningOffline
                 }
                 lock (varlock)
                 {
+                    if (titem != null) mainlist.Add(titem);
                     finished++;
                     progressBar1.Value = (int)(100.0 / totaltask * finished);
                 }
@@ -514,7 +536,7 @@ namespace WebLearningOffline
         {
             var dict = new Dictionary<string, object>();
             dict.Add("CourseId", c.id);
-            dict.Add("IsNew", c.isnew);
+            dict.Add("IsNew", c.isnew?"Yes":"No");
             dict.Add("CourseName", c.name);
             dict.Add("CourseTerm", c.term);
             return dict;
@@ -598,6 +620,7 @@ namespace WebLearningOffline
                     }
                     else if(iifstage==2)
                     {
+                        iifstage = 1;
                         if (c == ':') iifstage = 3;
                         else if (iifresult == true)
                         {
@@ -617,6 +640,7 @@ namespace WebLearningOffline
                     }
                     else if (iifstage == 4)
                     {
+                        iifstage = 3;
                         if (c == ':') iifstage = 0;
                         else if (iifresult == false)
                         {
