@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
@@ -21,8 +22,57 @@ namespace WebLearningOffline
         public string term;
     }
 
+    [Serializable] public class DownloadTask
+    {
+        public string url;
+        public string local;
+        public long size;
+        public int status;
+    }
+
     public static class Util
     {
+        public static long getsize(string url, CookieCollection cookies)
+        {
+            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
+            req.CookieContainer = new CookieContainer();
+            req.CookieContainer.Add(cookies);
+            req.Method = "HEAD";
+            using (System.Net.WebResponse resp = req.GetResponse())
+            {
+                int ContentLength;
+                if (int.TryParse(resp.Headers.Get("Content-Length"), out ContentLength))
+                {
+                    return ContentLength;
+                }
+            }
+            return 0;
+        }
+
+        public static void savetasklist(List<DownloadTask> list, string file)
+        {
+            var bf = new BinaryFormatter();
+            using(var fs=new FileStream(file,FileMode.Create))
+                bf.Serialize(fs, list);
+        }
+        public static List<DownloadTask> loadtasklist(string file)
+        {
+            var bf = new BinaryFormatter();
+            try
+            {
+                using (var fs = new FileStream(file, FileMode.Open))
+                {
+                    var list = bf.Deserialize(fs) as List<DownloadTask>;
+                    if (list != null) return list;
+                    else return new List<DownloadTask>();
+                }
+            }
+            catch (Exception)
+            {
+                return new List<DownloadTask>();
+            }
+        }
+
         public static string safepath(string s)
         {
             s = HttpUtility.HtmlDecode(s);
@@ -171,6 +221,16 @@ namespace WebLearningOffline
             }
             ret.Remove(ret.Length - 1, 1);
             return ret.ToString();
+        }
+        public static string BytesToString(long byteCount)
+        {
+            string[] suf = { "B", "KB", "MB", "GB", "TB", "PB", "EB" }; //Longs run out around EB
+            if (byteCount == 0)
+                return "0" + suf[0];
+            long bytes = Math.Abs(byteCount);
+            int place = Convert.ToInt32(Math.Floor(Math.Log(bytes, 1024)));
+            double num = Math.Round(bytes / Math.Pow(1024, place), 1);
+            return (Math.Sign(byteCount) * num).ToString() + suf[place];
         }
     }
 

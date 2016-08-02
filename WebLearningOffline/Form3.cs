@@ -38,7 +38,7 @@ namespace WebLearningOffline
 
         private void button1_Click(object sender, EventArgs e)
         {
-            if(MessageBox.Show("若在第一阶段取消，下次需要重新下载所有课程，确认吗？","取消下载",MessageBoxButtons.YesNo)==DialogResult.Yes)
+            if(MessageBox.Show("现在取消，下次会尽量从相同的位置继续，确认吗？","取消下载",MessageBoxButtons.YesNo)==DialogResult.Yes)
                 instance.canceltask();
         }
     }

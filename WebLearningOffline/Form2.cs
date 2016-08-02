@@ -31,6 +31,12 @@ namespace WebLearningOffline
         List<Dictionary<string, object>> mainlist = null;
         Form3 prgfrm = null;
 
+        List<DownloadTask> downlist = null;
+        long totalsize = 0;
+        long receivedsize = 0;
+        long succ = 0;
+        int nextdownjob = 0;
+
         public Form2(Form1 form1)
         {
             InitializeComponent();
@@ -251,18 +257,100 @@ namespace WebLearningOffline
             var bp = textBox1.Text;
             if (!bp.EndsWith(Path.DirectorySeparatorChar + "")) bp += Path.DirectorySeparatorChar;
             Util.writehtml("res" + Path.DirectorySeparatorChar + "网络学堂.html", bp + "网络学堂.html", main);
-            try
+
+            downlist = new List<DownloadTask>();
+            courses.ForEach(course =>
             {
-                if(haserror==0)System.Diagnostics.Process.Start(bp + "网络学堂.html");
+                var home = bp + Util.safepath(course.term);
+                home += Path.DirectorySeparatorChar + Util.safepath(course.name);
+                home += Path.DirectorySeparatorChar;
+                downlist.AddRange(Util.loadtasklist(home + "downloadlist.dat"));
+            });
+            downlist.ForEach(t => totalsize += t.size);
+            while (true)
+            {
+                if (nextdownjob >= downlist.Count)
+                {
+                    SystemSleepManagement.ResotreSleep();
+                    if (haserror > 0 || succ < downlist.Count) MessageBox.Show("有部分内容下载失败，可以再次运行，下载余下的内容");
+                    else MessageBox.Show("下载全部成功！");
+                    prgfrm.Dispose();
+                    prgfrm = null;
+                    button2.Text = "重新登录";
+                    button2.Enabled = true;
+                    try
+                    {
+                        if (haserror == 0 && succ == downlist.Count)
+                        {
+                            courses.ForEach(course =>
+                            {
+                                var home = bp + Util.safepath(course.term);
+                                home += Path.DirectorySeparatorChar + Util.safepath(course.name);
+                                home += Path.DirectorySeparatorChar;
+                                try
+                                {
+                                    File.Delete(home + "downloadlist.dat");
+                                }
+                                catch (Exception) { }
+                            });
+                            System.Diagnostics.Process.Start(bp + "网络学堂.html");
+                        }
+                    }
+                    catch (Exception) { }
+                    loginform.Show();
+                    this.Dispose();
+                    return;
+                }
+                if (canceled) { nextdownjob = downlist.Count; goto fin; }
+                var local = downlist[nextdownjob].local;
+                if (!File.Exists(downlist[nextdownjob].local) || new FileInfo(local).Length != downlist[nextdownjob].size)
+                {
+                    // start download
+                    long tsize = downlist[nextdownjob].size;
+                    long nsize = 0;
+                    bool okay = false;
+                    var buf = new byte[100 * 1024];
+                    try
+                    {
+                        var req = Http.GenerateRequest(downlist[nextdownjob].url, "GET", cookies: cookies);
+                        var res = (HttpWebResponse)req.GetResponse();
+                        var ns = res.GetResponseStream();
+                        using (var fs = new FileStream(local, FileMode.Create))
+                        {
+                            while (nsize < tsize)
+                            {
+                                if (canceled) { nextdownjob = downlist.Count; goto fin; }
+                                var rc = ns.Read(buf, 0, buf.Length);
+                                if (rc <= 0) continue;
+                                fs.Write(buf, 0, rc);
+                                nsize += rc;
+                                prgfrm.progressBar3.Value = (int)((double)nsize * 10000.0 / (double)(tsize == 0 ? 1 : tsize));
+                                prgfrm.progressBar2.Value = (int)(((double)receivedsize + nsize) * 10000 / (double)totalsize);
+                                prgfrm.label2.Text = "完成" + nextdownjob + "/" + downlist.Count + "个 " + Util.BytesToString(receivedsize + nsize) + "/" + Util.BytesToString(totalsize) + " 成功" + succ + " 失败" + (nextdownjob - succ);
+                                prgfrm.label3.Text = "当前文件" + Util.BytesToString(nsize) + "/" + Util.BytesToString(tsize);
+                            }
+                        }
+                        okay = true;
+                    }
+                    catch (Exception e) { try { File.Delete(local); } catch (Exception) { } }
+                    if (okay) succ++;
+                }
+                else succ++;
+                receivedsize += downlist[nextdownjob].size;
+                nextdownjob++;
+            fin:;
             }
-            catch (Exception) { }
-            SystemSleepManagement.ResotreSleep();
-            if (haserror > 0) MessageBox.Show("成功" + finished + "个，失败" + haserror + "个。详见课程列表。\r\n重新登录，可以再次下载出错的课程。");
-            else MessageBox.Show(finished + "个全部成功！");
-            prgfrm.Dispose();
-            prgfrm = null;
-            button2.Text = "重新登录";
-            button2.Enabled = true;
+        }
+        
+        private void Wc_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
+        {
+            if (e.TotalBytesToReceive != 0 && e.BytesReceived <= e.TotalBytesToReceive)
+            {
+                prgfrm.progressBar3.Value = (int)((double)e.BytesReceived * 10000.0 / (double)e.TotalBytesToReceive);
+                prgfrm.progressBar2.Value = (int)(((double)receivedsize + e.BytesReceived) * 10000 / (double)totalsize);
+                prgfrm.label2.Text = "完成" + nextdownjob + "/" + downlist.Count + "个 " + Util.BytesToString(receivedsize + e.BytesReceived) + "/" + Util.BytesToString(totalsize) + " 成功" + (succ>downlist.Count?downlist.Count:succ) + " 失败" + (nextdownjob - succ<0?0: nextdownjob - succ);
+                prgfrm.label3.Text = "当前文件" + Util.BytesToString(e.BytesReceived) + "/" + Util.BytesToString(e.TotalBytesToReceive);
+            }
         }
 
         void work(object incookies)
@@ -291,6 +379,7 @@ namespace WebLearningOffline
                     home += Path.DirectorySeparatorChar + Util.safepath(course.name);
                     Directory.CreateDirectory(home);
                     home += Path.DirectorySeparatorChar;
+                    var downfiles = new HashSet<DownloadTask>(Util.loadtasklist(home+"downloadlist.dat"));
 
                     if (!course.isnew)
                     {
@@ -363,7 +452,8 @@ namespace WebLearningOffline
                                     tfile.Add("FileUrl", url);
                                     var local = "课程文件" + Path.DirectorySeparatorChar + Util.safepath(filename);
                                     tfile.Add("FileLocal", local);
-                                    Util.downfile(url, home+local, mycookies);
+                                    //Util.downfile(url, home+local, mycookies);
+                                    downfiles.Add(new DownloadTask() { url = url, local = home + local, size = Util.getsize(url, mycookies) });
                                     list.Add(tfile);
                                 }
                             }
@@ -429,7 +519,8 @@ namespace WebLearningOffline
                                 {
                                     var aolocal = home + "课程作业" + Path.DirectorySeparatorChar + Util.safepath(name) + Path.DirectorySeparatorChar + Util.safepath(attnname);
                                     thwk.Add("HomeworkAttnOutLocal", aolocal);
-                                    Util.downfile(attn, aolocal, mycookies);
+                                    //Util.downfile(attn, aolocal, mycookies);
+                                    downfiles.Add(new DownloadTask() { url = attn, local = aolocal, size = Util.getsize(attn, mycookies) });
                                 }
                                 else thwk.Add("HomeworkAttnOutLocal", "");
                                 thwk.Add("HomeworkHasAttnIn", upattn != "" ? "Yes" : "No");
@@ -439,7 +530,8 @@ namespace WebLearningOffline
                                 {
                                     var ailocal = home + "课程作业" + Path.DirectorySeparatorChar + Util.safepath(name) + Path.DirectorySeparatorChar + Util.safepath(upattnname);
                                     thwk.Add("HomeworkAttnInLocal", ailocal);
-                                    Util.downfile(upattn, ailocal, mycookies);
+                                    //Util.downfile(upattn, ailocal, mycookies);
+                                    downfiles.Add(new DownloadTask() { url = upattn, local = ailocal, size = Util.getsize(upattn, mycookies) });
                                 }
                                 else thwk.Add("HomeworkAttnInLocal", "");
                                 if (scored)
@@ -486,7 +578,8 @@ namespace WebLearningOffline
                                     {
                                         var aslocal = home + "课程作业" + Path.DirectorySeparatorChar + Util.safepath(name) + Path.DirectorySeparatorChar + Util.safepath(filename);
                                         thwk.Add("HomeworkScoreAttnLocal", aslocal);
-                                        Util.downfile(file, aslocal, mycookies);
+                                        //Util.downfile(file, aslocal, mycookies);
+                                        downfiles.Add(new DownloadTask() { url = file, local = aslocal, size = Util.getsize(file, mycookies) });
                                     }
                                     else thwk.Add("HomeworkScoreAttnLocal", "");
                                 }
@@ -501,6 +594,7 @@ namespace WebLearningOffline
 
                     }
                     checkcancelled();
+                    Util.savetasklist(downfiles.ToList(), home + "downloadlist.dat");
                     listitem(i, "成功");
                     titem = Util.initdict(course);
                     titem.Add("HasNotes", File.Exists(home + "课程公告.html") ? "Yes" : "No");
