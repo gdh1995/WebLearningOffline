@@ -12,6 +12,7 @@ using System.Text.RegularExpressions;
 using System.IO;
 using System.Reflection;
 using System.Web;
+using HtmlAgilityPack;
 
 namespace WebLearningOffline
 {
@@ -253,6 +254,11 @@ namespace WebLearningOffline
             var bp = textBox1.Text;
             if (!bp.EndsWith(Path.DirectorySeparatorChar + "")) bp += Path.DirectorySeparatorChar;
             writehtml("网络学堂.html", bp + "网络学堂.html", main);
+            try
+            {
+                System.Diagnostics.Process.Start(bp + "网络学堂.html");
+            }
+            catch (Exception) { }
             SystemSleepManagement.ResotreSleep();
             if (haserror > 0) MessageBox.Show("成功" + finished + "个，失败" + haserror + "个。详见课程列表。\r\n重新登录，可以再次下载出错的课程。");
             else MessageBox.Show(finished + "个全部成功！");
@@ -307,7 +313,10 @@ namespace WebLearningOffline
                                 tnote.Add("NoteDate", tds[3].Groups[1].Value);
                                 var noteid = Regex.Match(tr.Groups[1].Value, @"href='(.+?)'").Groups[1].Value;
                                 var notecontent = Http.Get("http://learn.tsinghua.edu.cn/MultiLanguage/public/bbs/" + noteid, out mycookies, cookiesin: mycookies);
-                                var body = Regex.Matches(notecontent, @"<td.+?tr_l2.+?>(.*?)<\/td>", RegexOptions.Singleline)[1].Groups[1].Value;
+                                var doc = new HtmlAgilityPack.HtmlDocument();
+                                doc.LoadHtml(notecontent);
+                                var bodynode = doc.DocumentNode.SelectNodes("//table")[1].SelectSingleNode("tr[2]/td[2]");
+                                var body = bodynode.InnerHtml;
                                 tnote.Add("NoteBody", body);
                                 list.Add(tnote);
                             }

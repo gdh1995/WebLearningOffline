@@ -38,7 +38,7 @@
             // button1
             // 
             this.button1.Location = new System.Drawing.Point(178, 142);
-            this.button1.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.button1.Margin = new System.Windows.Forms.Padding(6);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(150, 48);
             this.button1.TabIndex = 3;
@@ -49,7 +49,7 @@
             // textBox2
             // 
             this.textBox2.Location = new System.Drawing.Point(126, 85);
-            this.textBox2.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.textBox2.Margin = new System.Windows.Forms.Padding(6);
             this.textBox2.Name = "textBox2";
             this.textBox2.PasswordChar = '*';
             this.textBox2.Size = new System.Drawing.Size(248, 31);
@@ -59,11 +59,10 @@
             // textBox1
             // 
             this.textBox1.Location = new System.Drawing.Point(126, 31);
-            this.textBox1.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.textBox1.Margin = new System.Windows.Forms.Padding(6);
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(248, 31);
             this.textBox1.TabIndex = 1;
-            this.textBox1.Text = "2012012041";
             this.textBox1.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox1_KeyPress);
             // 
             // label2
@@ -98,7 +97,7 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-            this.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.Margin = new System.Windows.Forms.Padding(6);
             this.MaximizeBox = false;
             this.Name = "Form1";
             this.Text = "网络学堂离线";
