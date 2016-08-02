@@ -35,8 +35,10 @@ namespace WebLearningOffline
         int haserror = 0;
         int finished = 0;
         int totaltask = 0;
+        bool canceled = false;
         object varlock = new object();
         List<Dictionary<string, object>> mainlist = null;
+        Form3 prgfrm = null;
 
         public Form2(Form1 form1)
         {
@@ -220,6 +222,10 @@ namespace WebLearningOffline
             checkedListBox2.EndUpdate();
             button1.Enabled = button2.Enabled = false;
             radioButton1.Enabled = radioButton2.Enabled = false;
+            prgfrm = new Form3(this);
+            prgfrm.Show(this);
+            prgfrm.progressBar1.Maximum = totaltask;
+            prgfrm.label1.Text = "完成" + finished + "/" + totaltask + " 成功" + (finished - haserror) + " 失败" + haserror;
             new Thread(new ThreadStart(run)).Start();
         }
 
@@ -253,7 +259,7 @@ namespace WebLearningOffline
             main.Add("StudentCourses", mainlist);
             var bp = textBox1.Text;
             if (!bp.EndsWith(Path.DirectorySeparatorChar + "")) bp += Path.DirectorySeparatorChar;
-            writehtml("网络学堂.html", bp + "网络学堂.html", main);
+            writehtml("res" + Path.DirectorySeparatorChar + "网络学堂.html", bp + "网络学堂.html", main);
             try
             {
                 System.Diagnostics.Process.Start(bp + "网络学堂.html");
@@ -262,6 +268,8 @@ namespace WebLearningOffline
             SystemSleepManagement.ResotreSleep();
             if (haserror > 0) MessageBox.Show("成功" + finished + "个，失败" + haserror + "个。详见课程列表。\r\n重新登录，可以再次下载出错的课程。");
             else MessageBox.Show(finished + "个全部成功！");
+            prgfrm.Dispose();
+            prgfrm = null;
             button2.Text = "重新登录";
             button2.Enabled = true;
         }
@@ -285,6 +293,7 @@ namespace WebLearningOffline
                 Dictionary<string, object> titem = null;
                 try
                 {
+                    checkcancelled();
                     var course = courses[i];
                     var home = bp + safepath(course.term);
                     Directory.CreateDirectory(home);
@@ -294,7 +303,6 @@ namespace WebLearningOffline
 
                     if (!course.isnew)
                     {
-                        listitem(i, "正在下载");
                         var course_locate = Http.Get("http://learn.tsinghua.edu.cn/MultiLanguage/lesson/student/course_locate.jsp?course_id=" + course.id, out mycookies, cookiesin: mycookies);
                         if (course_locate.Contains("getnoteid_student")&&checkedListBox1.GetItemChecked(1)&&!File.Exists(home+"课程公告.html"))
                         {
@@ -304,6 +312,7 @@ namespace WebLearningOffline
                             var list = new List<Dictionary<string, object>>();
                             for (int j = 0; j < trs.Count; j++)
                             {
+                                checkcancelled();
                                 var tr = trs[j];
                                 var tnote = new Dictionary<string, object>();
                                 var tds = Regex.Matches(tr.Groups[1].Value, @"<td.*?>(.*?)<\/td>", RegexOptions.Singleline);
@@ -316,13 +325,13 @@ namespace WebLearningOffline
                                 var doc = new HtmlAgilityPack.HtmlDocument();
                                 doc.LoadHtml(notecontent);
                                 var bodynode = doc.DocumentNode.SelectNodes("//table")[1].SelectSingleNode("tr[2]/td[2]");
-                                var body = bodynode.InnerHtml;
-                                tnote.Add("NoteBody", body);
+                                tnote.Add("NoteBody", bodynode.InnerHtml);
                                 list.Add(tnote);
                             }
                             array.Add("Notes", list);
-                            writehtml("课程公告.html", home + "课程公告.html", array);
+                            writehtml("res" + Path.DirectorySeparatorChar + "课程公告.html", home + "课程公告.html", array);
                         }
+                        checkcancelled();
                         if (course_locate.Contains("course_info") && checkedListBox1.GetItemChecked(2) && !File.Exists(home + "课程信息.html"))
                         {
                             var array = initdict(course);
@@ -330,8 +339,9 @@ namespace WebLearningOffline
                             info = Regex.Match(info, @"(<table id.+?\/table>)", RegexOptions.Singleline).Groups[1].Value;
                             info = Regex.Replace(info, @"<img.+?>", "");
                             array.Add("InfoBody", info);
-                            writehtml("课程信息.html", home + "课程信息.html", array);
+                            writehtml("res" + Path.DirectorySeparatorChar + "课程信息.html", home + "课程信息.html", array);
                         }
+                        checkcancelled();
                         if (course_locate.Contains("download") && checkedListBox1.GetItemChecked(3) && !File.Exists(home + "课程文件.html"))
                         {
                             var array = initdict(course);
@@ -346,6 +356,7 @@ namespace WebLearningOffline
                                 var trs = Regex.Matches(layers[j].Groups[1].Value, @"<tr class=.tr\d?.>(.*?)<\/tr>", RegexOptions.Singleline);
                                 foreach (Match tr in trs)
                                 {
+                                    checkcancelled();
                                     var tfile = new Dictionary<string, object>();
                                     var tds = Regex.Matches(tr.Groups[1].Value, @"<td.*?>(.*?)<\/td>", RegexOptions.Singleline);
                                     tfile.Add("FileClass", classname);
@@ -366,8 +377,9 @@ namespace WebLearningOffline
                                 }
                             }
                             array.Add("Files", list);
-                            writehtml("课程文件.html", home + "课程文件.html", array);
+                            writehtml("res" + Path.DirectorySeparatorChar + "课程文件.html", home + "课程文件.html", array);
                         }
+                        checkcancelled();
                         if (course_locate.Contains("hom_wk_brw") && checkedListBox1.GetItemChecked(4) && !File.Exists(home + "课程作业.html"))
                         {
                             var array = initdict(course);
@@ -377,6 +389,7 @@ namespace WebLearningOffline
                             Directory.CreateDirectory(home + "课程作业");
                             for(int j = 0; j < items.Count; j++)
                             {
+                                checkcancelled();
                                 var thwk = new Dictionary<string, object>();
                                 var tds = Regex.Matches(items[j].Groups[1].Value, @"<td.*?>(.*?)<\/td>",RegexOptions.Singleline);
                                 var name = Regex.Match(tds[0].Groups[1].Value, @"<a.*?>(.*?)<\/a>",RegexOptions.Singleline).Groups[1].Value;
@@ -489,13 +502,14 @@ namespace WebLearningOffline
                                 list.Add(thwk);
                             }
                             array.Add("Homeworks", list);
-                            writehtml("课程作业.html", home + "课程作业.html", array);
+                            writehtml("res"+Path.DirectorySeparatorChar+"课程作业.html", home + "课程作业.html", array);
                         }
                     }
                     else
                     {
 
                     }
+                    checkcancelled();
                     listitem(i, "成功");
                     titem = initdict(course);
                     titem.Add("HasNotes", File.Exists(home + "课程公告.html") ? "Yes" : "No");
@@ -504,7 +518,7 @@ namespace WebLearningOffline
                     titem.Add("HasHomework", File.Exists(home + "课程作业.html") ? "Yes" : "No");
                     titem.Add("BasePath", safepath(course.term) + '/' + safepath(course.name));
                 }
-                catch (FormatException ex)
+                catch (Exception ex)
                 {
                     listitem(i, "失败：" + ex.Message);
                     lock (varlock)
@@ -517,8 +531,17 @@ namespace WebLearningOffline
                 {
                     if (titem != null) mainlist.Add(titem);
                     finished++;
-                    progressBar1.Value = (int)(100.0 / totaltask * finished);
+                    prgfrm.progressBar1.Value = finished;
+                    prgfrm.label1.Text = "完成" + finished + "/" + totaltask + " 成功" + (finished - haserror) + " 失败" + haserror;
                 }
+            }
+        }
+
+        void checkcancelled()
+        {
+            lock (varlock)
+            {
+                if (canceled) throw new Exception("用户取消了操作");
             }
         }
 
@@ -685,39 +708,13 @@ namespace WebLearningOffline
         {
             Environment.Exit(0);
         }
-
-    }
-    public static class ControlExtensions
-    {
-        public static void DoubleBuffered(this Control control, bool enable)
+        
+        public void canceltask()
         {
-            var doubleBufferPropertyInfo = control.GetType().GetProperty("DoubleBuffered", BindingFlags.Instance | BindingFlags.NonPublic);
-            doubleBufferPropertyInfo.SetValue(control, enable, null);
-        }
-        public static void DoubleBuffering(this Control control, bool enable)
-        {
-            var method = typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic);
-            method.Invoke(control, new object[] { ControlStyles.OptimizedDoubleBuffer, enable });
-        }
-    }
-    public class CookieAwareWebClient : WebClient
-    {
-        public CookieContainer m_container = new CookieContainer();
-
-        public CookieAwareWebClient(CookieCollection cookies)
-        {
-            m_container.Add(cookies);
-        }
-
-        protected override WebRequest GetWebRequest(Uri address)
-        {
-            WebRequest request = base.GetWebRequest(address);
-            HttpWebRequest webRequest = request as HttpWebRequest;
-            if (webRequest != null)
+            lock (varlock)
             {
-                webRequest.CookieContainer = m_container;
+                canceled = true;
             }
-            return request;
         }
     }
 }
