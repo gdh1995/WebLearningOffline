@@ -151,6 +151,7 @@ namespace WebLearningOffline
             {
                 MessageBox.Show("获取课程列表失败！请重新登录。原因：\r\n" + e.Message);
                 loginform.Show();
+                loginform.BringToFront();
                 this.Dispose();
                 return;
             }
@@ -206,6 +207,7 @@ namespace WebLearningOffline
             if (button2.Text == "重新登录")
             {
                 loginform.Show();
+                loginform.BringToFront();
                 this.Dispose();
                 return;
             }
@@ -220,7 +222,8 @@ namespace WebLearningOffline
             button1.Enabled = button2.Enabled = false;
             radioButton1.Enabled = radioButton2.Enabled = false;
             prgfrm = new Form3(this);
-            prgfrm.Show(this);
+            prgfrm.Show();
+            this.Hide();
             prgfrm.progressBar1.Maximum = totaltask;
             prgfrm.label1.Text = "完成" + finished + "/" + totaltask + " 成功" + (finished - haserror) + " 失败" + haserror;
             new Thread(new ThreadStart(run)).Start();
@@ -298,6 +301,7 @@ namespace WebLearningOffline
                     }
                     catch (Exception) { }
                     loginform.Show();
+                    loginform.BringToFront();
                     this.Dispose();
                     return;
                 }
@@ -327,7 +331,7 @@ namespace WebLearningOffline
                                 prgfrm.progressBar3.Value = (int)((double)nsize * 10000.0 / (double)(tsize == 0 ? 1 : tsize));
                                 prgfrm.progressBar2.Value = (int)(((double)receivedsize + nsize) * 10000 / (double)totalsize);
                                 prgfrm.label2.Text = "完成" + nextdownjob + "/" + downlist.Count + "个 " + Util.BytesToString(receivedsize + nsize) + "/" + Util.BytesToString(totalsize) + " 成功" + succ + " 失败" + (nextdownjob - succ);
-                                prgfrm.label3.Text = "当前文件" + Util.BytesToString(nsize) + "/" + Util.BytesToString(tsize);
+                                prgfrm.label3.Text = "当前文件" + Util.BytesToString(nsize) + "/" + Util.BytesToString(tsize)+" "+downlist[nextdownjob].name;
                             }
                         }
                         okay = true;
@@ -453,7 +457,7 @@ namespace WebLearningOffline
                                     var local = "课程文件" + Path.DirectorySeparatorChar + Util.safepath(filename);
                                     tfile.Add("FileLocal", local);
                                     //Util.downfile(url, home+local, mycookies);
-                                    downfiles.Add(new DownloadTask() { url = url, local = home + local, size = Util.getsize(url, mycookies) });
+                                    downfiles.Add(new DownloadTask() { url = url, local = home + local, size = Util.getsize(url, mycookies), name=filename });
                                     list.Add(tfile);
                                 }
                             }
@@ -520,7 +524,7 @@ namespace WebLearningOffline
                                     var aolocal = home + "课程作业" + Path.DirectorySeparatorChar + Util.safepath(name) + Path.DirectorySeparatorChar + Util.safepath(attnname);
                                     thwk.Add("HomeworkAttnOutLocal", aolocal);
                                     //Util.downfile(attn, aolocal, mycookies);
-                                    downfiles.Add(new DownloadTask() { url = attn, local = aolocal, size = Util.getsize(attn, mycookies) });
+                                    downfiles.Add(new DownloadTask() { url = attn, local = aolocal, size = Util.getsize(attn, mycookies), name=attnname });
                                 }
                                 else thwk.Add("HomeworkAttnOutLocal", "");
                                 thwk.Add("HomeworkHasAttnIn", upattn != "" ? "Yes" : "No");
@@ -531,7 +535,7 @@ namespace WebLearningOffline
                                     var ailocal = home + "课程作业" + Path.DirectorySeparatorChar + Util.safepath(name) + Path.DirectorySeparatorChar + Util.safepath(upattnname);
                                     thwk.Add("HomeworkAttnInLocal", ailocal);
                                     //Util.downfile(upattn, ailocal, mycookies);
-                                    downfiles.Add(new DownloadTask() { url = upattn, local = ailocal, size = Util.getsize(upattn, mycookies) });
+                                    downfiles.Add(new DownloadTask() { url = upattn, local = ailocal, size = Util.getsize(upattn, mycookies), name=upattnname });
                                 }
                                 else thwk.Add("HomeworkAttnInLocal", "");
                                 if (scored)
@@ -579,7 +583,7 @@ namespace WebLearningOffline
                                         var aslocal = home + "课程作业" + Path.DirectorySeparatorChar + Util.safepath(name) + Path.DirectorySeparatorChar + Util.safepath(filename);
                                         thwk.Add("HomeworkScoreAttnLocal", aslocal);
                                         //Util.downfile(file, aslocal, mycookies);
-                                        downfiles.Add(new DownloadTask() { url = file, local = aslocal, size = Util.getsize(file, mycookies) });
+                                        downfiles.Add(new DownloadTask() { url = file, local = aslocal, size = Util.getsize(file, mycookies), name=filename });
                                     }
                                     else thwk.Add("HomeworkScoreAttnLocal", "");
                                 }

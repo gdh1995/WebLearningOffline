@@ -27,7 +27,7 @@ namespace WebLearningOffline
         public string url;
         public string local;
         public long size;
-        public int status;
+        public string name;
     }
 
     public static class Util
