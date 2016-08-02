@@ -262,7 +262,7 @@ namespace WebLearningOffline
             writehtml("res" + Path.DirectorySeparatorChar + "网络学堂.html", bp + "网络学堂.html", main);
             try
             {
-                System.Diagnostics.Process.Start(bp + "网络学堂.html");
+                if(haserror==0)System.Diagnostics.Process.Start(bp + "网络学堂.html");
             }
             catch (Exception) { }
             SystemSleepManagement.ResotreSleep();
