@@ -716,5 +716,16 @@ namespace WebLearningOffline
                 canceled = true;
             }
         }
+
+        private void pictureBox1_Click(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process.Start("http://student.tsinghua.edu.cn/");
+        }
+
+        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            System.Diagnostics.Process.Start("http://student.tsinghua.edu.cn/");
+            linkLabel1.LinkVisited = true;
+        }
     }
 }
