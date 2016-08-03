@@ -13,6 +13,7 @@ using System.IO;
 using System.Reflection;
 using System.Web;
 using HtmlAgilityPack;
+using System.Net.Sockets;
 
 namespace WebLearningOffline
 {
@@ -92,6 +93,12 @@ namespace WebLearningOffline
             CheckForIllegalCrossThreadCalls = false;
             this.ClientSize = new Size(groupBox2.Left + groupBox2.Width + groupBox1.Left, groupBox1.Top + groupBox1.Height + groupBox1.Top);
             textBox1.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            if (loginform.savepath != null)
+            {
+                radioButton1.Checked = loginform.desktop;
+                radioButton2.Checked = !loginform.desktop;
+                textBox1.Text = loginform.savepath;
+            }
             new Thread(new ThreadStart(LoadCourses)).Start();
         }
 
@@ -151,11 +158,19 @@ namespace WebLearningOffline
             courses.ForEach(c => checkedListBox2.Items.Add(c.name + "(" + c.term + (c.isnew ? ")(新版)" : ")")));
 
             button2.Enabled = true;
-            for (int i = 0; i < checkedListBox2.Items.Count; i++)
-                checkedListBox2.SetItemChecked(i, true);
+            if(loginform.coursechecked==null || loginform.coursechecked.Length!=checkedListBox2.Items.Count)
+                for (int i = 0; i < checkedListBox2.Items.Count; i++)
+                    checkedListBox2.SetItemChecked(i, true);
+            else
+                for (int i = 0; i < checkedListBox2.Items.Count; i++)
+                    checkedListBox2.SetItemChecked(i, loginform.coursechecked[i]);
             checkedListBox2.Enabled = true;
-            for (int i = 0; i < checkedListBox1.Items.Count; i++)
-                checkedListBox1.SetItemChecked(i, true);
+            if (loginform.itemchecked == null || loginform.itemchecked.Length != checkedListBox1.Items.Count)
+                for (int i = 0; i < checkedListBox1.Items.Count; i++)
+                    checkedListBox1.SetItemChecked(i, true);
+            else
+                for (int i = 0; i < checkedListBox1.Items.Count; i++)
+                    checkedListBox1.SetItemChecked(i, loginform.itemchecked[i]);
             groupBox1.Text += "(" + courses.Count + ")";
         }
 
@@ -194,13 +209,6 @@ namespace WebLearningOffline
 
         private void button2_Click(object sender, EventArgs e)
         {
-            if (button2.Text == "重新登录")
-            {
-                loginform.Show();
-                loginform.BringToFront();
-                this.Dispose();
-                return;
-            }
             if (button2.Text == "取消")
             {
                 if (MessageBox.Show("现在取消，下次会尽量从相同的位置继续，确认吗？", "取消下载", MessageBoxButtons.YesNo) == DialogResult.Yes)
@@ -268,33 +276,7 @@ namespace WebLearningOffline
             {
                 if (nextdownjob >= downlist.Count)
                 {
-                    SystemSleepManagement.ResotreSleep();
-                    if (haserror > 0 || succ < downlist.Count) MessageBox.Show("有部分内容下载失败，可以再次运行，下载余下的内容");
-                    else MessageBox.Show("下载全部成功！");
-                    button2.Text = "重新登录";
-                    try
-                    {
-                        if (haserror == 0 && succ == downlist.Count)
-                        {
-                            courses.ForEach(course =>
-                            {
-                                var home = bp + Util.safepath(course.term);
-                                home += Path.DirectorySeparatorChar + Util.safepath(course.name);
-                                home += Path.DirectorySeparatorChar;
-                                try
-                                {
-                                    File.Delete(home + "downloadlist.dat");
-                                }
-                                catch (Exception) { }
-                            });
-                            System.Diagnostics.Process.Start(bp + "网络学堂.html");
-                        }
-                    }
-                    catch (Exception) { }
-                    loginform.Show();
-                    loginform.BringToFront();
-                    this.Dispose();
-                    return;
+                    break;
                 }
                 if (canceled) { nextdownjob = downlist.Count; goto fin; }
                 var local = downlist[nextdownjob].local;
@@ -307,22 +289,45 @@ namespace WebLearningOffline
                     var buf = new byte[100 * 1024];
                     try
                     {
-                        var req = Http.GenerateRequest(downlist[nextdownjob].url, "GET", cookies: cookies);
-                        var res = (HttpWebResponse)req.GetResponse();
-                        var ns = res.GetResponseStream();
-                        using (var fs = new FileStream(local, FileMode.Create))
+                        using (var client = new TcpClient())
                         {
-                            while (nsize < tsize)
+                            var req = "GET " + findpath(downlist[nextdownjob].url) + " HTTP/1.1\r\n";
+                            req+="Host: "+findhost(downlist[nextdownjob].url) + "\r\n";
+                            req += "Connection: Close\r\n";
+                            req += "Cookie: " + cookiestostring(cookies) + "\r\n\r\n";
+                            var array = Encoding.UTF8.GetBytes(req);
+                            client.Connect(findhost(downlist[nextdownjob].url), 80);
+                            using (var stream = client.GetStream())
                             {
-                                if (canceled) { nextdownjob = downlist.Count; goto fin; }
-                                var rc = ns.Read(buf, 0, buf.Length);
-                                if (rc <= 0) continue;
-                                fs.Write(buf, 0, rc);
-                                nsize += rc;
-                                progressBar3.Value = prgchk((int)((double)nsize * 10000.0 / (double)(tsize == 0 ? 1 : tsize)));
-                                progressBar2.Value = prgchk((int)(((double)receivedsize + nsize) * 10000 / (double)totalsize));
-                                label2.Text = "完成" + nextdownjob + "/" + downlist.Count + "个 " + Util.BytesToString(receivedsize + nsize) + "/" + Util.BytesToString(totalsize) + " 成功" + succ + " 失败" + (nextdownjob - succ);
-                                label3.Text = "当前文件" + Util.BytesToString(nsize) + "/" + Util.BytesToString(tsize)+" "+downlist[nextdownjob].name;
+                                stream.Write(array, 0, array.Length);
+                                stream.Flush();
+                                var rc = stream.Read(buf, 0, buf.Length);
+                                var i = 0;
+                                for(; i < rc; i++)
+                                {
+                                    if (buf[i] == '\r' && buf[i + 1] == '\n' && buf[i + 2] == '\r' && buf[i + 3] == '\n')
+                                    {
+                                        i = i + 4;
+                                        break;
+                                    }
+                                }
+                                using (var fs = new FileStream(local, FileMode.Create))
+                                {
+                                    nsize = rc - i + 1;
+                                    fs.Write(buf, i, (int)nsize);
+                                    while (nsize < tsize)
+                                    {
+                                        if (canceled) { nextdownjob = downlist.Count; goto fin; }
+                                        rc = stream.Read(buf, 0, buf.Length);
+                                        if (rc <= 0) throw new Exception("short read");
+                                        fs.Write(buf, 0, rc);
+                                        nsize += rc;
+                                        progressBar3.Value = prgchk((int)((double)nsize * 10000.0 / (double)(tsize == 0 ? 1 : tsize)));
+                                        progressBar2.Value = prgchk((int)(((double)receivedsize + nsize) * 10000 / (double)totalsize));
+                                        label2.Text = "完成" + nextdownjob + "/" + downlist.Count + "个 " + Util.BytesToString(receivedsize + nsize) + "/" + Util.BytesToString(totalsize) + " 成功" + succ + " 失败" + (nextdownjob - succ);
+                                        label3.Text = "当前文件" + Util.BytesToString(nsize) + "/" + Util.BytesToString(tsize) + " " + downlist[nextdownjob].name;
+                                    }
+                                }
                             }
                         }
                         okay = true;
@@ -335,17 +340,66 @@ namespace WebLearningOffline
                 nextdownjob++;
             fin:;
             }
-        }
-        
-        private void Wc_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
-        {
-            if (e.TotalBytesToReceive != 0 && e.BytesReceived <= e.TotalBytesToReceive)
+
+            loginform.savepath = textBox1.Text;
+            loginform.desktop = radioButton1.Checked;
+            loginform.itemchecked = new bool[checkedListBox1.Items.Count];
+            for (int i = 0; i < checkedListBox1.Items.Count; i++)
+                loginform.itemchecked[i] = checkedListBox1.GetItemChecked(i);
+            loginform.coursechecked = new bool[checkedListBox2.Items.Count];
+            for (int i = 0; i < checkedListBox2.Items.Count; i++)
+                loginform.coursechecked[i] = checkedListBox2.GetItemChecked(i);
+
+            SystemSleepManagement.ResotreSleep();
+            if (haserror > 0 || succ < downlist.Count) MessageBox.Show("有部分内容下载失败，可以再次运行，下载余下的内容");
+            else MessageBox.Show("下载全部成功！");
+            button2.Text = "重新登录";
+            try
             {
-                progressBar3.Value = (int)((double)e.BytesReceived * 10000.0 / (double)e.TotalBytesToReceive);
-                progressBar2.Value = (int)(((double)receivedsize + e.BytesReceived) * 10000 / (double)totalsize);
-                label2.Text = "完成" + nextdownjob + "/" + downlist.Count + "个 " + Util.BytesToString(receivedsize + e.BytesReceived) + "/" + Util.BytesToString(totalsize) + " 成功" + (succ>downlist.Count?downlist.Count:succ) + " 失败" + (nextdownjob - succ<0?0: nextdownjob - succ);
-                label3.Text = "当前文件" + Util.BytesToString(e.BytesReceived) + "/" + Util.BytesToString(e.TotalBytesToReceive);
+                if (haserror == 0 && succ == downlist.Count)
+                {
+                    courses.ForEach(course =>
+                    {
+                        var home = bp + Util.safepath(course.term);
+                        home += Path.DirectorySeparatorChar + Util.safepath(course.name);
+                        home += Path.DirectorySeparatorChar;
+                        try
+                        {
+                            File.Delete(home + "downloadlist.dat");
+                        }
+                        catch (Exception) { }
+                    });
+                    System.Diagnostics.Process.Start(bp + "网络学堂.html");
+                }
             }
+            catch (Exception) { }
+            loginform.Show();
+            loginform.relogin = true;
+            this.Dispose();
+            return;
+        }
+
+        private string cookiestostring(CookieCollection cookies)
+        {
+            var tmp = "";
+            foreach (Cookie cookie in cookies)
+            {
+                tmp += cookie.Name + "=" + cookie.Value + "; ";
+            }
+            if (tmp.EndsWith("; ")) tmp = tmp.Substring(0, tmp.Length - 2);
+            return tmp;
+        }
+
+        private string findhost(string url)
+        {
+            var match = Regex.Match(url, @"http:\/\/(.+?)\/").Groups[1].Value;
+            return match;
+        }
+
+        private string findpath(string url)
+        {
+            var match = Regex.Match(url, @"http:\/\/.+?(\/.*)").Groups[1].Value;
+            return match;
         }
 
         void work(object incookies)

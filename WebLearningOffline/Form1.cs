@@ -14,7 +14,12 @@ namespace WebLearningOffline
     public partial class Form1 : Form
     {
         public CookieCollection cookies;
-        Form2 form2;
+        Form2 form2 = null;
+        public bool[] coursechecked = null;
+        public bool[] itemchecked = null;
+        public bool desktop = true;
+        public string savepath = null;
+        public bool relogin = false;
 
         public Form1()
         {
@@ -45,7 +50,7 @@ namespace WebLearningOffline
             }
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        public void button1_Click(object sender, EventArgs e)
         {
             button1.Text = "正在登录...";
             button1.Enabled = false;
@@ -80,14 +85,24 @@ namespace WebLearningOffline
             button1.Enabled = true;
             textBox1.Enabled = true;
             textBox2.Enabled = true;
+            var oldform2 = form2;
             form2 = new Form2(this);
             form2.Show();
             this.Hide();
+            if (oldform2 != null) oldform2.Dispose();
         }
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
             Application.Exit();
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            if (!relogin) return;
+            relogin = false;
+            timer1.Enabled = false;
+            button1_Click(null, null);
         }
     }
 }
