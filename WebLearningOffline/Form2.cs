@@ -76,21 +76,13 @@ namespace WebLearningOffline
         {
             if (radioButton1.Checked)
             {
-                button1.Enabled = radioButton2.Checked = false;
                 textBox1.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            }
-        }
-
-        private void radioButton2_CheckedChanged(object sender, EventArgs e)
-        {
-            if (radioButton2.Checked)
-            {
-                button1.Enabled = true;
             }
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
+            radioButton2.Checked = true;
             if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
                 textBox1.Text = folderBrowserDialog1.SelectedPath;
         }
@@ -236,7 +228,7 @@ namespace WebLearningOffline
         void run()
         {
             SystemSleepManagement.PreventSleep(false);
-            var threads = new Thread[5];
+            var threads = new Thread[6];
             var main = new Dictionary<string, object>();
             var info = Http.Get("http://learn.tsinghua.edu.cn/MultiLanguage/vspace/vspace_userinfo1.jsp", out cookies, cookiesin: cookies);
             var match = Regex.Match(info, @"学生姓名<.*?tr_l2.>(.*?)<", RegexOptions.Singleline);
@@ -337,7 +329,7 @@ namespace WebLearningOffline
                         }
                         okay = true;
                     }
-                    catch (Exception e) { try { File.Delete(local); } catch (Exception) { } }
+                    catch (Exception) { try { File.Delete(local); } catch (Exception) { } }
                     if (okay) succ++;
                 }
                 else succ++;

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Net;
+using System.Threading;
 
 namespace WebLearningOffline
 {
@@ -56,7 +57,7 @@ namespace WebLearningOffline
             HttpWebRequest req = GenerateRequest(URL, "GET", cookies: cookiesin);
             var newcookies = new CookieCollection();
             string ret = null;
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 10; i++)
             {
                 try
                 {
@@ -65,7 +66,12 @@ namespace WebLearningOffline
                 }
                 catch (Exception e)
                 {
-                    if (i == 4) throw e;
+                    if (i == 9) throw e;
+                    try
+                    {
+                        Thread.Sleep(1000);
+                    }
+                    catch (Exception) { }
                 }
             }
             if (cookiesin == null) cookies = newcookies;
