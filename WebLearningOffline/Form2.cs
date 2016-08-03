@@ -29,7 +29,6 @@ namespace WebLearningOffline
         bool canceled = false;
         object varlock = new object();
         List<Dictionary<string, object>> mainlist = null;
-        Form3 prgfrm = null;
 
         List<DownloadTask> downlist = null;
         long totalsize = 0;
@@ -101,8 +100,6 @@ namespace WebLearningOffline
             CheckForIllegalCrossThreadCalls = false;
             this.ClientSize = new Size(groupBox2.Left + groupBox2.Width + groupBox1.Left, groupBox1.Top + groupBox1.Height + groupBox1.Top);
             textBox1.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            checkedListBox2.DoubleBuffered(true);
-            checkedListBox2.DoubleBuffering(true);
             new Thread(new ThreadStart(LoadCourses)).Start();
         }
 
@@ -212,7 +209,12 @@ namespace WebLearningOffline
                 this.Dispose();
                 return;
             }
-            button2.Text = "正在运行";
+            if (button2.Text == "取消")
+            {
+                canceltask();
+                return;
+            }
+            button2.Text = "取消";
             checkedListBox2.BeginUpdate();
             for (int i = 1; i < checkedListBox2.Items.Count; i++)
             {
@@ -220,13 +222,12 @@ namespace WebLearningOffline
                 if (courses[i - 1].selected) totaltask++;
             }
             checkedListBox2.EndUpdate();
-            button1.Enabled = button2.Enabled = false;
+            button1.Enabled = false;
             radioButton1.Enabled = radioButton2.Enabled = false;
-            prgfrm = new Form3(this);
-            prgfrm.Show();
-            this.Hide();
-            prgfrm.progressBar1.Maximum = totaltask;
-            prgfrm.label1.Text = "完成" + finished + "/" + totaltask + " 成功" + (finished - haserror) + " 失败" + haserror;
+            progressBar1.Maximum = totaltask;
+            this.ClientSize = new Size(this.ClientSize.Width, groupBox4.Top + groupBox4.Height + groupBox1.Top);
+            groupBox4.Visible = true;
+            label1.Text = "完成" + finished + "/" + totaltask + " 成功" + (finished - haserror) + " 失败" + haserror;
             new Thread(new ThreadStart(run)).Start();
         }
 
@@ -262,6 +263,9 @@ namespace WebLearningOffline
             if (!bp.EndsWith(Path.DirectorySeparatorChar + "")) bp += Path.DirectorySeparatorChar;
             Util.writehtml("res" + Path.DirectorySeparatorChar + "网络学堂.html", bp + "网络学堂.html", main);
 
+            this.ClientSize = new Size(this.ClientSize.Width, groupBox5.Top + groupBox5.Height + groupBox1.Top);
+            groupBox5.Visible = true;
+
             downlist = new List<DownloadTask>();
             courses.ForEach(course =>
             {
@@ -278,10 +282,7 @@ namespace WebLearningOffline
                     SystemSleepManagement.ResotreSleep();
                     if (haserror > 0 || succ < downlist.Count) MessageBox.Show("有部分内容下载失败，可以再次运行，下载余下的内容");
                     else MessageBox.Show("下载全部成功！");
-                    prgfrm.Dispose();
-                    prgfrm = null;
                     button2.Text = "重新登录";
-                    button2.Enabled = true;
                     try
                     {
                         if (haserror == 0 && succ == downlist.Count)
@@ -329,10 +330,10 @@ namespace WebLearningOffline
                                 if (rc <= 0) continue;
                                 fs.Write(buf, 0, rc);
                                 nsize += rc;
-                                prgfrm.progressBar3.Value = prgchk((int)((double)nsize * 10000.0 / (double)(tsize == 0 ? 1 : tsize)));
-                                prgfrm.progressBar2.Value = prgchk((int)(((double)receivedsize + nsize) * 10000 / (double)totalsize));
-                                prgfrm.label2.Text = "完成" + nextdownjob + "/" + downlist.Count + "个 " + Util.BytesToString(receivedsize + nsize) + "/" + Util.BytesToString(totalsize) + " 成功" + succ + " 失败" + (nextdownjob - succ);
-                                prgfrm.label3.Text = "当前文件" + Util.BytesToString(nsize) + "/" + Util.BytesToString(tsize)+" "+downlist[nextdownjob].name;
+                                progressBar3.Value = prgchk((int)((double)nsize * 10000.0 / (double)(tsize == 0 ? 1 : tsize)));
+                                progressBar2.Value = prgchk((int)(((double)receivedsize + nsize) * 10000 / (double)totalsize));
+                                label2.Text = "完成" + nextdownjob + "/" + downlist.Count + "个 " + Util.BytesToString(receivedsize + nsize) + "/" + Util.BytesToString(totalsize) + " 成功" + succ + " 失败" + (nextdownjob - succ);
+                                label3.Text = "当前文件" + Util.BytesToString(nsize) + "/" + Util.BytesToString(tsize)+" "+downlist[nextdownjob].name;
                             }
                         }
                         okay = true;
@@ -351,10 +352,10 @@ namespace WebLearningOffline
         {
             if (e.TotalBytesToReceive != 0 && e.BytesReceived <= e.TotalBytesToReceive)
             {
-                prgfrm.progressBar3.Value = (int)((double)e.BytesReceived * 10000.0 / (double)e.TotalBytesToReceive);
-                prgfrm.progressBar2.Value = (int)(((double)receivedsize + e.BytesReceived) * 10000 / (double)totalsize);
-                prgfrm.label2.Text = "完成" + nextdownjob + "/" + downlist.Count + "个 " + Util.BytesToString(receivedsize + e.BytesReceived) + "/" + Util.BytesToString(totalsize) + " 成功" + (succ>downlist.Count?downlist.Count:succ) + " 失败" + (nextdownjob - succ<0?0: nextdownjob - succ);
-                prgfrm.label3.Text = "当前文件" + Util.BytesToString(e.BytesReceived) + "/" + Util.BytesToString(e.TotalBytesToReceive);
+                progressBar3.Value = (int)((double)e.BytesReceived * 10000.0 / (double)e.TotalBytesToReceive);
+                progressBar2.Value = (int)(((double)receivedsize + e.BytesReceived) * 10000 / (double)totalsize);
+                label2.Text = "完成" + nextdownjob + "/" + downlist.Count + "个 " + Util.BytesToString(receivedsize + e.BytesReceived) + "/" + Util.BytesToString(totalsize) + " 成功" + (succ>downlist.Count?downlist.Count:succ) + " 失败" + (nextdownjob - succ<0?0: nextdownjob - succ);
+                label3.Text = "当前文件" + Util.BytesToString(e.BytesReceived) + "/" + Util.BytesToString(e.TotalBytesToReceive);
             }
         }
 
@@ -621,8 +622,8 @@ namespace WebLearningOffline
                 {
                     if (titem != null) mainlist.Add(titem);
                     finished++;
-                    prgfrm.progressBar1.Value = finished;
-                    prgfrm.label1.Text = "完成" + finished + "/" + totaltask + " 成功" + (finished - haserror) + " 失败" + haserror;
+                    progressBar1.Value = finished;
+                    label1.Text = "完成" + finished + "/" + totaltask + " 成功" + (finished - haserror) + " 失败" + haserror;
                 }
             }
         }
