@@ -211,7 +211,8 @@ namespace WebLearningOffline
             }
             if (button2.Text == "取消")
             {
-                canceltask();
+                if (MessageBox.Show("现在取消，下次会尽量从相同的位置继续，确认吗？", "取消下载", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                    canceltask();
                 return;
             }
             button2.Text = "取消";
@@ -225,8 +226,9 @@ namespace WebLearningOffline
             button1.Enabled = false;
             radioButton1.Enabled = radioButton2.Enabled = false;
             progressBar1.Maximum = totaltask;
-            this.ClientSize = new Size(this.ClientSize.Width, groupBox4.Top + groupBox4.Height + groupBox1.Top);
+            groupBox5.Visible = true;
             groupBox4.Visible = true;
+            this.ClientSize = new Size(this.ClientSize.Width, groupBox5.Top + groupBox5.Height + groupBox1.Top);
             label1.Text = "完成" + finished + "/" + totaltask + " 成功" + (finished - haserror) + " 失败" + haserror;
             new Thread(new ThreadStart(run)).Start();
         }
@@ -262,9 +264,6 @@ namespace WebLearningOffline
             var bp = textBox1.Text;
             if (!bp.EndsWith(Path.DirectorySeparatorChar + "")) bp += Path.DirectorySeparatorChar;
             Util.writehtml("res" + Path.DirectorySeparatorChar + "网络学堂.html", bp + "网络学堂.html", main);
-
-            this.ClientSize = new Size(this.ClientSize.Width, groupBox5.Top + groupBox5.Height + groupBox1.Top);
-            groupBox5.Visible = true;
 
             downlist = new List<DownloadTask>();
             courses.ForEach(course =>
