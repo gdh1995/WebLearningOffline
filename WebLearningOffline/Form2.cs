@@ -313,7 +313,7 @@ namespace WebLearningOffline
                                 }
                                 using (var fs = new FileStream(local, FileMode.Create))
                                 {
-                                    nsize = rc - i + 1;
+                                    nsize = rc - i;
                                     fs.Write(buf, i, (int)nsize);
                                     while (nsize < tsize)
                                     {
@@ -353,7 +353,6 @@ namespace WebLearningOffline
             SystemSleepManagement.ResotreSleep();
             if (haserror > 0 || succ < downlist.Count) MessageBox.Show("有部分内容下载失败，可以再次运行，下载余下的内容");
             else MessageBox.Show("下载全部成功！");
-            button2.Text = "重新登录";
             try
             {
                 if (haserror == 0 && succ == downlist.Count)
@@ -373,9 +372,33 @@ namespace WebLearningOffline
                 }
             }
             catch (Exception) { }
-            loginform.Show();
-            loginform.relogin = true;
-            this.Dispose();
+
+
+             nextjob = 0;
+             haserror = 0;
+             finished = 0;
+             totaltask = 0;
+             canceled = false;
+             mainlist = null;
+
+             downlist = null;
+             totalsize = 0;
+             receivedsize = 0;
+             succ = 0;
+             nextdownjob = 0;
+            checkedListBox2.Items.Clear();
+            checkedListBox2.Items.Add("正在加载课程列表……");
+            this.label1.Text = "完成0/0 成功0 失败0";
+            this.label3.Text = "当前文件0MB/0MB";
+            this.label2.Text = "完成0/0个 0MB/0MB 成功0 失败0";
+            progressBar1.Value = progressBar2.Value = progressBar3.Value = 0;
+            groupBox4.Visible = groupBox5.Visible = false;
+            radioButton1.Enabled = radioButton2.Enabled = button1.Enabled = true;
+            groupBox2.Text = "选择要下载的课程";
+
+            button2.Enabled = false;
+            button2.Text = "开始！";
+            Form2_Load(null, null);
             return;
         }
 
