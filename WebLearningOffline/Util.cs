@@ -20,6 +20,18 @@ namespace WebLearningOffline
         public string id;
         public string name;
         public string term;
+        public override int GetHashCode()
+        {
+            return id.GetHashCode();
+        }
+        public bool Equals(Course c)
+        {
+            return c.id == id;
+        }
+        public override bool Equals(object obj)
+        {
+            return obj is Course && Equals((Course)obj);
+        }
     }
 
     [Serializable] public class DownloadTask
@@ -28,6 +40,18 @@ namespace WebLearningOffline
         public string local;
         public long size;
         public string name;
+        public override int GetHashCode()
+        {
+            return url.GetHashCode();
+        }
+        public bool Equals(DownloadTask c)
+        {
+            return c.url == url;
+        }
+        public override bool Equals(object obj)
+        {
+            return obj is DownloadTask && Equals((DownloadTask)obj);
+        }
     }
 
     public static class Util
@@ -233,20 +257,7 @@ namespace WebLearningOffline
             return (Math.Sign(byteCount) * num).ToString() + suf[place];
         }
     }
-
-    public static class ControlExtensions
-    {
-        public static void DoubleBuffered(this Control control, bool enable)
-        {
-            var doubleBufferPropertyInfo = control.GetType().GetProperty("DoubleBuffered", BindingFlags.Instance | BindingFlags.NonPublic);
-            doubleBufferPropertyInfo.SetValue(control, enable, null);
-        }
-        public static void DoubleBuffering(this Control control, bool enable)
-        {
-            var method = typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic);
-            method.Invoke(control, new object[] { ControlStyles.OptimizedDoubleBuffer, enable });
-        }
-    }
+    
     public class CookieAwareWebClient : WebClient
     {
         public CookieContainer m_container = new CookieContainer();
