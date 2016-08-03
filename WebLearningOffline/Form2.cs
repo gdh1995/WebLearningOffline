@@ -260,10 +260,8 @@ namespace WebLearningOffline
             downlist = new List<DownloadTask>();
             courses.ForEach(course =>
             {
-                var home = bp + Util.safepath(course.term);
-                home += Path.DirectorySeparatorChar + Util.safepath(course.name);
-                home += Path.DirectorySeparatorChar;
-                downlist.AddRange(Util.loadtasklist(home + "downloadlist.dat"));
+                if(course.selected)
+                    downlist.AddRange(Util.loadtasklist(bp + Util.safepath(course.term) + Path.DirectorySeparatorChar + Util.safepath(course.name) + Path.DirectorySeparatorChar + "downloadlist.dat"));
             });
             downlist.ForEach(t => totalsize += t.size);
             while (true)
