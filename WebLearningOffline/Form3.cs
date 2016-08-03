@@ -33,7 +33,7 @@ namespace WebLearningOffline
 
         private void Form3_Load(object sender, EventArgs e)
         {
-
+            this.ClientSize = new Size(groupBox1.Left * 2 + groupBox1.Width, groupBox1.Top + button1.Top + button1.Height);
         }
 
         private void button1_Click(object sender, EventArgs e)

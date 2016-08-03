@@ -99,6 +99,7 @@ namespace WebLearningOffline
         private void Form2_Load(object sender, EventArgs e)
         {
             CheckForIllegalCrossThreadCalls = false;
+            this.ClientSize = new Size(groupBox2.Left + groupBox2.Width + groupBox1.Left, groupBox1.Top + groupBox1.Height + groupBox1.Top);
             textBox1.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             checkedListBox2.DoubleBuffered(true);
             checkedListBox2.DoubleBuffering(true);
@@ -328,8 +329,8 @@ namespace WebLearningOffline
                                 if (rc <= 0) continue;
                                 fs.Write(buf, 0, rc);
                                 nsize += rc;
-                                prgfrm.progressBar3.Value = (int)((double)nsize * 10000.0 / (double)(tsize == 0 ? 1 : tsize));
-                                prgfrm.progressBar2.Value = (int)(((double)receivedsize + nsize) * 10000 / (double)totalsize);
+                                prgfrm.progressBar3.Value = prgchk((int)((double)nsize * 10000.0 / (double)(tsize == 0 ? 1 : tsize)));
+                                prgfrm.progressBar2.Value = prgchk((int)(((double)receivedsize + nsize) * 10000 / (double)totalsize));
                                 prgfrm.label2.Text = "完成" + nextdownjob + "/" + downlist.Count + "个 " + Util.BytesToString(receivedsize + nsize) + "/" + Util.BytesToString(totalsize) + " 成功" + succ + " 失败" + (nextdownjob - succ);
                                 prgfrm.label3.Text = "当前文件" + Util.BytesToString(nsize) + "/" + Util.BytesToString(tsize)+" "+downlist[nextdownjob].name;
                             }
@@ -665,6 +666,12 @@ namespace WebLearningOffline
         {
             System.Diagnostics.Process.Start("http://student.tsinghua.edu.cn/");
             linkLabel1.LinkVisited = true;
+        }
+        int prgchk(int a)
+        {
+            if (a < 0) return 0;
+            if (a > 10000) return 10000;
+            return a;
         }
     }
 }
