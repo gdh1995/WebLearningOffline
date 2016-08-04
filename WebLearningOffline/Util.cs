@@ -11,6 +11,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Windows.Forms;
+using System.Runtime.Serialization.Json;
+using System.Runtime.Serialization;
 
 namespace WebLearningOffline
 {
@@ -33,6 +35,26 @@ namespace WebLearningOffline
         {
             return obj is Course && Equals((Course)obj);
         }
+    }
+
+    [DataContract] public class NoticeBody
+    {
+        [DataMember] public string title;
+        [DataMember] public string owner;
+        [DataMember] public string regDate;
+        [DataMember] public string detail;
+    }
+    [DataContract] public class NoticeObject
+    {
+        [DataMember] public NoticePage paginationList;
+    }
+    [DataContract] public class NoticePage
+    {
+        [DataMember] public NoticeList[] recordList;
+    }
+    [DataContract] public class NoticeList
+    {
+        [DataMember] public NoticeBody courseNotice;
     }
 
     [Serializable] public class DownloadTask

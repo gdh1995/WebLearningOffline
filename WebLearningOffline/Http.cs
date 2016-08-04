@@ -52,9 +52,10 @@ namespace WebLearningOffline
             }
             return req;
         }
-        public static string Get(string URL, out CookieCollection cookies, CookieCollection cookiesin = null)
+        public static string Get(string URL, out CookieCollection cookies, CookieCollection cookiesin = null, bool redirect=true)
         {
             HttpWebRequest req = GenerateRequest(URL, "GET", cookies: cookiesin);
+            if (redirect == false) req.AllowAutoRedirect = false;
             var newcookies = new CookieCollection();
             string ret = null;
             for (int i = 0; i < 10; i++)
