@@ -291,6 +291,9 @@ namespace WebLearningOffline
                     {
                         using (var client = new TcpClient())
                         {
+                            progressBar3.Value = 0;
+                            label2.Text = "完成" + nextdownjob + "/" + downlist.Count + "个 " + Util.BytesToString(receivedsize + nsize) + "/" + Util.BytesToString(totalsize) + " 成功" + succ + " 失败" + (nextdownjob - succ);
+                            label3.Text = "当前文件" + Util.BytesToString(nsize) + "/" + Util.BytesToString(tsize) + " " + downlist[nextdownjob].name;
                             var req = "GET " + findpath(downlist[nextdownjob].url) + " HTTP/1.1\r\n";
                             req+="Host: "+findhost(downlist[nextdownjob].url) + "\r\n";
                             req += "Connection: Close\r\n";

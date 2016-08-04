@@ -29,6 +29,12 @@ namespace WebLearningOffline
         private void Form1_Load(object sender, EventArgs e)
         {
             this.ClientSize = new Size(textBox1.Left + textBox1.Width + label1.Left, button1.Top + button1.Height + textBox1.Top);
+            var uri = WebRequest.DefaultWebProxy.GetProxy(new Uri("http://learn.tsinghua.edu.cn/"));
+            if (!uri.ToString().Contains("learn.tsinghua.edu"))
+            {
+                MessageBox.Show("你正使用代理服务器上网，请关闭后再使用。");
+                Application.Exit();
+            }
         }
 
         private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
