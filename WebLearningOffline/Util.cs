@@ -57,6 +57,32 @@ namespace WebLearningOffline
         [DataMember] public NoticeBody courseNotice;
     }
 
+    [DataContract] public class CourseInfo
+    {
+        [DataMember] public string course_no;
+        [DataMember] public string course_seq;
+        [DataMember] public string credit;
+        [DataMember] public string course_time;
+        [DataMember] public TeacherInfo teacherInfo;
+        [DataMember] public string ref_book_c;
+        [DataMember] public string guide;
+        [DataMember] public string exam_type;
+        [DataMember] public string requirement;
+        [DataMember] public string detail_c;
+    }
+    [DataContract] public class TeacherInfo
+    {
+        [DataMember] public string name;
+        [DataMember] public string email;
+        [DataMember] public string phone;
+        [DataMember] public string note;
+    }
+    [DataContract] public class InfoObject
+    {
+        [DataMember] public CourseInfo allInfo;
+        [DataMember] public string schedule;
+    }
+
     [Serializable] public class DownloadTask
     {
         public string url;

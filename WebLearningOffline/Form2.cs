@@ -701,7 +701,31 @@ namespace WebLearningOffline
                             }
                         }
                         checkcancelled();
-
+                        if (course_config.Contains("courseinfo") && checkedListBox1.GetItemChecked(2) && !File.Exists(home + "课程信息.html"))
+                        {
+                            var infopage= Http.Get("http://learn.cic.tsinghua.edu.cn/b/mycourse/courseExtension/getCourseExtensionByCourseId/" + course.id, out mycookies, mycookies);
+                            var ser = new DataContractJsonSerializer(typeof(InfoObject));
+                            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(infopage)))
+                            {
+                                var obj = (InfoObject)ser.ReadObject(ms);
+                                var array = Util.initdict(course);
+                                array.Add("CourseNumber", obj.allInfo.course_no);
+                                array.Add("CourseSeq", obj.allInfo.course_seq);
+                                array.Add("CourseCredit", obj.allInfo.credit);
+                                array.Add("CourseTime", obj.allInfo.course_time);
+                                array.Add("TeacherName", obj.allInfo.teacherInfo.name);
+                                array.Add("TeacherEmail", obj.allInfo.teacherInfo.email);
+                                array.Add("TeacherPhone", obj.allInfo.teacherInfo.phone);
+                                array.Add("TeacherNote", obj.allInfo.teacherInfo.note);
+                                array.Add("ReferenceBook", obj.allInfo.ref_book_c);
+                                array.Add("CourseGuide", obj.allInfo.guide);
+                                array.Add("ExamType", obj.allInfo.exam_type);
+                                array.Add("CoursePrereq", obj.allInfo.requirement);
+                                array.Add("CourseDetail", obj.allInfo.detail_c);
+                                array.Add("CourseSchedule", obj.schedule);
+                                Util.writehtml("res" + Path.DirectorySeparatorChar + "课程信息(新版).html", home + "课程信息.html", array);
+                            }
+                        }
                     }
 
                     checkcancelled();
