@@ -775,7 +775,7 @@ namespace WebLearningOffline
                                     tfile.Add("FileUrl", url);
                                     var local = "课程文件" + Path.DirectorySeparatorChar + Util.safepath(file.resourcesMappingByFileId.fileName);
                                     tfile.Add("FileLocal", local.Replace('\\', '/'));
-                                    downfiles.Add(new DownloadTask() { url = url, local = home + local, size = Util.getsize(url, mycookies), name = file.resourcesMappingByFileId.fileName });
+                                    downfiles.Add(new DownloadTask() { url = url, local = home + local, size = fsize, name = file.resourcesMappingByFileId.fileName });
                                     list.Add(tfile);
                                 }
                             }
