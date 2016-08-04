@@ -269,6 +269,11 @@ namespace WebLearningOffline
             if (!bp.EndsWith(Path.DirectorySeparatorChar + "")) bp += Path.DirectorySeparatorChar;
             Util.writehtml("res" + Path.DirectorySeparatorChar + "网络学堂.html", bp + "网络学堂.html", main);
 
+
+            var page1 = Http.Get("http://learn.tsinghua.edu.cn/MultiLanguage/lesson/student/MyCourse.jsp", out cookies, cookies);
+            var link1 = Regex.Match(page1, @"iframe src=(.+?) ").Groups[1].Value;
+            var mycookies = new CookieCollection();
+            Http.Get(link1, out mycookies, mycookies, false);
             downlist = new List<DownloadTask>();
             courses.ForEach(course =>
             {
@@ -300,8 +305,8 @@ namespace WebLearningOffline
                             label3.Text = "当前文件" + Util.BytesToString(nsize) + "/" + Util.BytesToString(tsize) + " " + downlist[nextdownjob].name;
                             var req = "GET " + findpath(downlist[nextdownjob].url) + " HTTP/1.1\r\n";
                             req += "Host: " + findhost(downlist[nextdownjob].url) + "\r\n";
-                            req += "Connection: Close\r\n";
-                            req += "Cookie: " + cookiestostring(cookies) + "\r\n\r\n";
+                            req += "User-Agent: Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.82 Safari/537.36\r\n";
+                            req += "Cookie: " + cookiestostring(downlist[nextdownjob].url.Contains("n.cic.t")?mycookies: cookies) + "\r\n\r\n";
                             var array = Encoding.UTF8.GetBytes(req);
                             client.Connect(findhost(downlist[nextdownjob].url), 80);
                             using (var stream = client.GetStream())
@@ -530,7 +535,7 @@ namespace WebLearningOffline
                                     var url = "http://learn.tsinghua.edu.cn" + Regex.Match(tds[2].Groups[1].Value, "href=\"(.*?)\"").Groups[1].Value;
                                     tfile.Add("FileUrl", url);
                                     var local = "课程文件" + Path.DirectorySeparatorChar + Util.safepath(filename);
-                                    tfile.Add("FileLocal", local);
+                                    tfile.Add("FileLocal", local.Replace('\\','/'));
                                     //Util.downfile(url, home+local, mycookies);
                                     downfiles.Add(new DownloadTask() { url = url, local = home + local, size = Util.getsize(url, mycookies), name = filename });
                                     list.Add(tfile);
@@ -725,6 +730,57 @@ namespace WebLearningOffline
                                 array.Add("CourseSchedule", obj.schedule);
                                 Util.writehtml("res" + Path.DirectorySeparatorChar + "课程信息(新版).html", home + "课程信息.html", array);
                             }
+                        }
+                        checkcancelled();
+                        if (course_config.Contains("courseware") && checkedListBox1.GetItemChecked(3) && !File.Exists(home + "课程文件.html"))
+                        {
+                            var filepage= Http.Get("http://learn.cic.tsinghua.edu.cn/b/myCourse/tree/getCoursewareTreeData/" + course.id+"/0", out mycookies, mycookies);
+                            var cats = Util.dividejson(filepage, "childMapData");
+                            var ser = new DataContractJsonSerializer(typeof(FileType));
+                            var objs = new List<FileType>();
+                            foreach (var cat in cats)
+                            {
+                                using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(cat)))
+                                {
+                                    var obj = (FileType)ser.ReadObject(ms);
+                                    Array.Sort(obj.courseCoursewareList);
+                                    objs.Add(obj);
+                                }
+                            }
+                            objs.Sort();
+                            var array = Util.initdict(course);
+                            var list = new List<Dictionary<string, object>>();
+                            Directory.CreateDirectory(home + "课程文件");
+                            foreach (var obj in objs)
+                            {
+                                foreach (var file in obj.courseCoursewareList)
+                                {
+
+                                    checkcancelled();
+                                    var tfile = new Dictionary<string, object>();
+                                    tfile.Add("FileClass", obj.courseOutlines.title);
+                                    tfile.Add("FileNumber", file.position.ToString());
+                                    tfile.Add("FileTitle", file.title);
+                                    tfile.Add("FileName", file.resourcesMappingByFileId.fileName);
+                                    tfile.Add("FileComment", file.detail);
+                                    long fsize = 0;
+                                    string sizetext = "";
+                                    if (long.TryParse(file.resourcesMappingByFileId.fileSize, out fsize)) sizetext = Util.BytesToString(fsize);
+                                    else sizetext = file.resourcesMappingByFileId.fileSize;
+                                    tfile.Add("FileSize", sizetext);
+                                    tfile.Add("FileDate", Util.timestamptodate(file.resourcesMappingByFileId.regDate/1000));
+                                    var url = "http://learn.cic.tsinghua.edu.cn/b/resource/downloadFile/" + file.resourcesMappingByFileId.fileId;
+                                    var json = Http.Get(url, out mycookies, mycookies);
+                                    url = "http://learn.cic.tsinghua.edu.cn" + Regex.Match(json, "result\":\"(.*?)\"").Groups[1].Value;
+                                    tfile.Add("FileUrl", url);
+                                    var local = "课程文件" + Path.DirectorySeparatorChar + Util.safepath(file.resourcesMappingByFileId.fileName);
+                                    tfile.Add("FileLocal", local.Replace('\\', '/'));
+                                    downfiles.Add(new DownloadTask() { url = url, local = home + local, size = Util.getsize(url, mycookies), name = file.resourcesMappingByFileId.fileName });
+                                    list.Add(tfile);
+                                }
+                            }
+                            array.Add("Files", list);
+                            Util.writehtml("res" + Path.DirectorySeparatorChar + "课程文件.html", home + "课程文件.html", array);
                         }
                     }
 

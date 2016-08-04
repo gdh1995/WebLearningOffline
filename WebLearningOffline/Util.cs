@@ -83,6 +83,39 @@ namespace WebLearningOffline
         [DataMember] public string schedule;
     }
 
+    [DataContract] public class FileType: IComparable<FileType>
+    {
+		[DataMember] public FileTypeInfo courseOutlines;
+		[DataMember] public int position;
+		[DataMember] public FileEntry[] courseCoursewareList;
+        public int CompareTo(FileType other)
+        {
+            return position.CompareTo(other.position);
+        }
+    }
+    [DataContract] public class FileTypeInfo
+    {
+		[DataMember] public string title;
+    }
+	[DataContract] public class FileEntry: IComparable<FileEntry>
+    {
+		[DataMember] public FileDetail resourcesMappingByFileId;
+		[DataMember] public int position;
+		[DataMember] public string title;
+		[DataMember] public string detail;
+        public int CompareTo(FileEntry other)
+        {
+            return position.CompareTo(other.position);
+        }
+    }
+	[DataContract] public class FileDetail
+    {
+		[DataMember] public string fileName;
+		[DataMember] public string fileSize;
+		[DataMember] public string fileId;
+		[DataMember] public long regDate;
+    }
+
     [Serializable] public class DownloadTask
     {
         public string url;
@@ -105,12 +138,19 @@ namespace WebLearningOffline
 
     public static class Util
     {
+        public static string timestamptodate(long unixTimeStamp)
+        {
+            System.DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0);
+            dtDateTime = dtDateTime.AddSeconds(unixTimeStamp).AddHours(8);
+            return dtDateTime.ToString("yyyy-MM-dd");
+        }
         public static long getsize(string url, CookieCollection cookies)
         {
             HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
             req.CookieContainer = new CookieContainer();
             req.CookieContainer.Add(cookies);
             req.Method = "HEAD";
+            req.UserAgent = "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.82 Safari/537.36";
             using (System.Net.WebResponse resp = req.GetResponse())
             {
                 int ContentLength;
@@ -304,6 +344,37 @@ namespace WebLearningOffline
             int place = Convert.ToInt32(Math.Floor(Math.Log(bytes, 1024)));
             double num = Math.Round(bytes / Math.Pow(1024, place), 1);
             return (Math.Sign(byteCount) * num).ToString() + suf[place];
+        }
+        public static string[] dividejson(string json,string node)
+        {
+            int pos = json.IndexOf(node);
+            pos = json.IndexOf('{', pos) + 1;
+            var ret = new List<string>();
+            while (true)
+            {
+                if (json[pos] == '{')
+                {
+                    pos++;
+                    int level = 1;
+                    var sb = new StringBuilder();
+                    while (true)
+                    {
+                        if (json[pos] == '{') level++;
+                        else if (json[pos] == '}')
+                        {
+                            level--;
+                            if (level == 0) break;
+                        }
+                        sb.Append(json[pos]);
+                        pos++;
+                    }
+                    pos++;
+                    ret.Add("{"+sb.ToString() + "}");
+                }
+                else if (json[pos] == '}') break;
+                else pos++;
+            }
+            return ret.ToArray();
         }
     }
     
