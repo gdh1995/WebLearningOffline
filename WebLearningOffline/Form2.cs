@@ -755,7 +755,6 @@ namespace WebLearningOffline
                             {
                                 foreach (var file in obj.courseCoursewareList)
                                 {
-
                                     checkcancelled();
                                     var tfile = new Dictionary<string, object>();
                                     tfile.Add("FileClass", obj.courseOutlines.title);
@@ -782,6 +781,102 @@ namespace WebLearningOffline
                             array.Add("Files", list);
                             Util.writehtml("res" + Path.DirectorySeparatorChar + "课程文件.html", home + "课程文件.html", array);
                         }
+                        checkcancelled();
+                        if (course_config.Contains("homework") && checkedListBox1.GetItemChecked(4) && !File.Exists(home + "课程作业.html"))
+                        {
+                            var hwpage= Http.Get("http://learn.cic.tsinghua.edu.cn/b/myCourse/homework/list4Student/" + course.id+"/0", out mycookies, mycookies);
+                            var hwstrs = Util.dividejson(hwpage, "resultList",false);
+                            var ser = new DataContractJsonSerializer(typeof(HomeworkObject));
+                            var hws = new List<HomeworkObject>();
+                            foreach (var hwstr in hwstrs)
+                            {
+                                using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(hwstr)))
+                                {
+                                    var obj = (HomeworkObject)ser.ReadObject(ms);
+                                    hws.Add(obj);
+                                }
+                            }
+                            var array = Util.initdict(course);
+                            var list = new List<Dictionary<string, object>>();
+                            Directory.CreateDirectory(home + "课程作业");
+                            foreach (var hw in hws)
+                            {
+                                checkcancelled();
+                                var thwk = new Dictionary<string, object>();
+                                thwk.Add("HomeworkName", hw.courseHomeworkInfo.title);
+                                Directory.CreateDirectory(home + "课程作业" + Path.DirectorySeparatorChar + Util.safepath(hw.courseHomeworkInfo.title));
+                                thwk.Add("HomeworkStart", Util.timestamptodate(hw.courseHomeworkInfo.beginDate / 1000));
+                                thwk.Add("HomeworkEnd", Util.timestamptodate(hw.courseHomeworkInfo.endDate / 1000));
+                                thwk.Add("HomeworkSubmitted", int.Parse(hw.courseHomeworkRecord.status) != 0 ? "Yes" : "No");
+                                thwk.Add("HomeworkScored", int.Parse(hw.courseHomeworkRecord.status) >= 2 ? "Yes" : "No");
+                                thwk.Add("HomeworkHandout", hw.courseHomeworkInfo.detail);
+                                thwk.Add("HomeworkHasHandout", hw.courseHomeworkInfo.detail != null ? "Yes" : "No");
+                                thwk.Add("HomeworkHandin", hw.courseHomeworkRecord.homewkDetail);
+                                thwk.Add("HomeworkHasHandin", hw.courseHomeworkRecord.homewkDetail!=null ? "Yes" : "No");
+
+                                thwk.Add("HomeworkHasAttnOut", hw.courseHomeworkInfo.homewkAffix != null ? "Yes" : "No");
+                                thwk.Add("HomeworkAttnOut", hw.courseHomeworkInfo.homewkAffix);
+                                thwk.Add("HomeworkAttnOutName", hw.courseHomeworkInfo.homewkAffixFilename);
+                                if (hw.courseHomeworkInfo.homewkAffix != null)
+                                {
+                                    var aolocal = home + "课程作业" + Path.DirectorySeparatorChar + Util.safepath(hw.courseHomeworkInfo.title) + Path.DirectorySeparatorChar + Util.safepath(hw.courseHomeworkInfo.homewkAffixFilename);
+                                    thwk.Add("HomeworkAttnOutLocal", aolocal);
+                                    var url = "http://learn.cic.tsinghua.edu.cn/b/resource/downloadFile/" + hw.courseHomeworkInfo.homewkAffix;
+                                    var json = Http.Get(url, out mycookies, mycookies);
+                                    url = "http://learn.cic.tsinghua.edu.cn" + Regex.Match(json, "result\":\"(.*?)\"").Groups[1].Value;
+                                    downfiles.Add(new DownloadTask() { url = url, local = aolocal, size = Util.getsize(url, mycookies), name = hw.courseHomeworkInfo.homewkAffixFilename });
+                                }
+                                else thwk.Add("HomeworkAttnOutLocal", "");
+                                if (hw.courseHomeworkRecord.resourcesMappingByHomewkAffix != null)
+                                {
+                                    thwk.Add("HomeworkHasAttnIn", "Yes");
+                                    thwk.Add("HomeworkAttnIn", hw.courseHomeworkRecord.resourcesMappingByHomewkAffix.fileId);
+                                    thwk.Add("HomeworkAttnInName", hw.courseHomeworkRecord.resourcesMappingByHomewkAffix.fileName);
+                                    var ailocal = home + "课程作业" + Path.DirectorySeparatorChar + Util.safepath(hw.courseHomeworkInfo.title) + Path.DirectorySeparatorChar + Util.safepath(hw.courseHomeworkRecord.resourcesMappingByHomewkAffix.fileName);
+                                    thwk.Add("HomeworkAttnInLocal", ailocal);
+                                    var url = "http://learn.cic.tsinghua.edu.cn/b/resource/downloadFile/" + hw.courseHomeworkRecord.resourcesMappingByHomewkAffix.fileId;
+                                    var json = Http.Get(url, out mycookies, mycookies);
+                                    url = "http://learn.cic.tsinghua.edu.cn" + Regex.Match(json, "result\":\"(.*?)\"").Groups[1].Value;
+                                    downfiles.Add(new DownloadTask() { url = url, local = ailocal, size = long.Parse(hw.courseHomeworkRecord.resourcesMappingByHomewkAffix.fileSize), name = hw.courseHomeworkRecord.resourcesMappingByHomewkAffix.fileName });
+                                }
+                                else
+                                {
+                                    thwk.Add("HomeworkHasAttnIn", "No");
+                                    thwk.Add("HomeworkAttnIn", "");
+                                    thwk.Add("HomeworkAttnInName", "");
+                                    thwk.Add("HomeworkAttnInLocal", "");
+                                }
+                                if (int.Parse(hw.courseHomeworkRecord.status) >= 2)
+                                {
+                                    thwk.Add("HomeworkScorer", hw.courseHomeworkRecord.gradeUser);
+                                    thwk.Add("HomeworkScoreDate", Util.timestamptodate(long.Parse(hw.courseHomeworkRecord.replyDate) / 1000));
+                                    thwk.Add("HomeworkScore", hw.courseHomeworkRecord.mark);
+                                    thwk.Add("HomeworkScoreComment", hw.courseHomeworkRecord.replyDetail);
+                                    if (hw.courseHomeworkRecord.resourcesMappingByReplyAffix != null)
+                                    {
+                                        thwk.Add("HomeworkScoreHasAttn", "Yes");
+                                        thwk.Add("HomeworkScoreAttn", hw.courseHomeworkRecord.resourcesMappingByReplyAffix.fileId);
+                                        thwk.Add("HomeworkScoreAttnName", hw.courseHomeworkRecord.resourcesMappingByReplyAffix.fileName);
+                                        var aslocal = home + "课程作业" + Path.DirectorySeparatorChar + Util.safepath(hw.courseHomeworkInfo.title) + Path.DirectorySeparatorChar + Util.safepath(hw.courseHomeworkRecord.resourcesMappingByReplyAffix.fileName);
+                                        thwk.Add("HomeworkScoreAttnLocal", aslocal);
+                                        var url = "http://learn.cic.tsinghua.edu.cn/b/resource/downloadFile/" + hw.courseHomeworkRecord.resourcesMappingByReplyAffix.fileId;
+                                        var json = Http.Get(url, out mycookies, mycookies);
+                                        url = "http://learn.cic.tsinghua.edu.cn" + Regex.Match(json, "result\":\"(.*?)\"").Groups[1].Value;
+                                        downfiles.Add(new DownloadTask() { url = url, local = aslocal, size = long.Parse(hw.courseHomeworkRecord.resourcesMappingByReplyAffix.fileSize), name = hw.courseHomeworkRecord.resourcesMappingByReplyAffix.fileName });
+                                    }
+                                    else
+                                    {
+                                        thwk.Add("HomeworkScoreHasAttn", "No");
+                                        thwk.Add("HomeworkScoreAttn", "");
+                                        thwk.Add("HomeworkScoreAttnName", "");
+                                        thwk.Add("HomeworkScoreAttnLocal", "");
+                                    }
+                                }
+                                list.Add(thwk);
+                            }
+                            array.Add("Homeworks", list);
+                            Util.writehtml("res" + Path.DirectorySeparatorChar + "课程作业.html", home + "课程作业.html", array);
+                        }
                     }
 
                     checkcancelled();
@@ -794,7 +889,7 @@ namespace WebLearningOffline
                     titem.Add("HasHomework", File.Exists(home + "课程作业.html") ? "Yes" : "No");
                     titem.Add("BasePath", Util.safepath(course.term) + '/' + Util.safepath(course.name));
                 }
-                catch (Exception ex)
+                catch (FormatException ex)
                 {
                     listitem(i, "失败：" + ex.Message);
                     lock (varlock)

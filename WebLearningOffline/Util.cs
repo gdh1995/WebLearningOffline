@@ -116,6 +116,39 @@ namespace WebLearningOffline
 		[DataMember] public long regDate;
     }
 
+    [DataContract] public class HomeworkObject
+    {
+        [DataMember] public HomeworkInfo courseHomeworkInfo;
+        [DataMember] public HomeworkRecord courseHomeworkRecord;
+    }
+    [DataContract] public class HomeworkInfo
+    {
+        [DataMember] public long beginDate;
+        [DataMember] public long endDate;
+        [DataMember] public string title;
+        [DataMember] public string detail;
+        [DataMember] public string homewkAffix;
+        [DataMember] public string homewkAffixFilename;
+
+    }
+    [DataContract] public class HomeworkRecord
+    {
+        [DataMember] public string status;
+        [DataMember] public HomeworkFile resourcesMappingByHomewkAffix;
+        [DataMember] public string homewkDetail;
+        [DataMember] public string gradeUser;
+        [DataMember] public string mark;
+        [DataMember] public string replyDate;
+        [DataMember] public string replyDetail;
+        [DataMember] public HomeworkFile resourcesMappingByReplyAffix;
+    }
+    [DataContract] public class HomeworkFile
+    {
+        [DataMember] public string fileId;
+        [DataMember] public string fileName;
+        [DataMember] public string fileSize;
+    }
+
     [Serializable] public class DownloadTask
     {
         public string url;
@@ -193,7 +226,7 @@ namespace WebLearningOffline
             {
                 s = s.Replace(c, ' ');
             }
-            return s;
+            return s.Trim().Replace(' ','_');
         }
         public static void downfile(string url, string file, CookieCollection cookies)
         {
@@ -278,7 +311,7 @@ namespace WebLearningOffline
                         }
                         else
                         {
-                            ret.Append(array[aname]);
+                            ret.Append(array[aname]==null?"": array[aname]);
                             ret.Append(c);
                         }
                     }
@@ -345,10 +378,10 @@ namespace WebLearningOffline
             double num = Math.Round(bytes / Math.Pow(1024, place), 1);
             return (Math.Sign(byteCount) * num).ToString() + suf[place];
         }
-        public static string[] dividejson(string json,string node)
+        public static string[] dividejson(string json,string node,bool nextbracket=true)
         {
             int pos = json.IndexOf(node);
-            pos = json.IndexOf('{', pos) + 1;
+            if(nextbracket)pos = json.IndexOf('{', pos) + 1;
             var ret = new List<string>();
             while (true)
             {
