@@ -1,17 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
-using System.Windows.Forms;
-using System.Runtime.Serialization.Json;
 using System.Runtime.Serialization;
 
 namespace WebLearningOffline
@@ -171,20 +166,20 @@ namespace WebLearningOffline
 
     public static class Util
     {
-        public static string timestamptodate(long unixTimeStamp)
+        public static string TimestampToDate(long unixTimeStamp)
         {
-            System.DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0);
+            var dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0);
             dtDateTime = dtDateTime.AddSeconds(unixTimeStamp).AddHours(8);
             return dtDateTime.ToString("yyyy-MM-dd");
         }
-        public static long getsize(string url, CookieCollection cookies)
+        public static long GetRemoteFileSize(string url, CookieCollection cookies)
         {
-            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
+            var req = (HttpWebRequest)WebRequest.Create(url);
             req.CookieContainer = new CookieContainer();
             req.CookieContainer.Add(cookies);
             req.Method = "HEAD";
             req.UserAgent = "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.82 Safari/537.36";
-            using (System.Net.WebResponse resp = req.GetResponse())
+            using (var resp = req.GetResponse())
             {
                 int ContentLength;
                 if (int.TryParse(resp.Headers.Get("Content-Length"), out ContentLength))
@@ -192,16 +187,15 @@ namespace WebLearningOffline
                     return ContentLength;
                 }
             }
-            return 0;
+            return -1;
         }
-
-        public static void savetasklist(List<DownloadTask> list, string file)
+        public static void SaveTaskList(List<DownloadTask> list, string file)
         {
             var bf = new BinaryFormatter();
             using(var fs=new FileStream(file,FileMode.Create))
                 bf.Serialize(fs, list);
         }
-        public static List<DownloadTask> loadtasklist(string file)
+        public static List<DownloadTask> LoadTaskList(string file)
         {
             var bf = new BinaryFormatter();
             try
@@ -218,17 +212,16 @@ namespace WebLearningOffline
                 return new List<DownloadTask>();
             }
         }
-
-        public static string safepath(string s)
+        public static string GetSafePathName(string s)
         {
             s = HttpUtility.HtmlDecode(s);
             foreach (var c in Path.GetInvalidPathChars().Union(Path.GetInvalidFileNameChars()))
             {
-                s = s.Replace(c, ' ');
+                s = s.Replace(c, '_');
             }
             return s.Trim().Replace(' ','_');
         }
-        public static void downfile(string url, string file, CookieCollection cookies)
+        public static void DownloadFile(string url, string file, CookieCollection cookies)
         {
             for (int i = 0; i < 5; i++)
             {
@@ -244,7 +237,7 @@ namespace WebLearningOffline
                 }
             }
         }
-        public static Dictionary<string, object> initdict(Course c)
+        public static Dictionary<string, object> InitDictionary(Course c)
         {
             var dict = new Dictionary<string, object>();
             dict.Add("CourseId", c.id);
@@ -253,8 +246,7 @@ namespace WebLearningOffline
             dict.Add("CourseTerm", c.term);
             return dict;
         }
-
-        public static void writehtml(string infile, string outfile, Dictionary<string, object> array)
+        public static void WriteHTML(string infile, string outfile, Dictionary<string, object> array)
         {
             using (var sr = new StreamReader(infile))
             using (var sw = new StreamWriter(outfile))
@@ -265,7 +257,7 @@ namespace WebLearningOffline
                     var match = Regex.Match(line, "<!-- replace (.+?) -->");
                     if (match.Success)
                     {
-                        sw.WriteLine(replacevar(match.Groups[1].Value, array));
+                        sw.WriteLine(ReplaceVariable(match.Groups[1].Value, array));
                     }
                     else
                     {
@@ -274,10 +266,9 @@ namespace WebLearningOffline
                         {
                             var aname = match.Groups[1].Value;
                             var templ = match.Groups[2].Value;
-                            if (!array.ContainsKey(aname)) throw new Exception("模板错误 没有变量" + aname);
-                            if (array[aname].GetType() != typeof(List<Dictionary<string, object>>)) throw new Exception("模板错误 不是数组" + aname);
+                            if (!array.ContainsKey(aname)|| array[aname].GetType() != typeof(List<Dictionary<string, object>>)) { sw.WriteLine(line); continue; }
                             var list = (List<Dictionary<string, object>>)array[aname];
-                            list.ForEach(e => sw.WriteLine(replacevar(templ, e)));
+                            list.ForEach(e => sw.WriteLine(ReplaceVariable(templ, e)));
                         }
                         else sw.WriteLine(line);
                     }
@@ -285,7 +276,7 @@ namespace WebLearningOffline
             }
         }
 
-        public static string replacevar(string str, Dictionary<string, object> array)
+        static string ReplaceVariable(string str, Dictionary<string, object> array)
         {
             var ret = new StringBuilder();
             var varname = new StringBuilder();
@@ -301,18 +292,26 @@ namespace WebLearningOffline
                     else
                     {
                         var aname = varname.ToString();
-                        if (!array.ContainsKey(aname)) throw new Exception("模板错误 没有变量" + aname);
                         building = false;
-                        varname = new StringBuilder();
-                        if (c == '?')
+                        if (!array.ContainsKey(aname))
                         {
-                            iifresult = ((string)array[aname] == "Yes");
-                            iifstage = 1;
+                            ret.Append('$');
+                            ret.Append(aname);
+                            ret.Append(c);
                         }
                         else
                         {
-                            ret.Append(array[aname]==null?"": array[aname]);
-                            ret.Append(c);
+                            varname = new StringBuilder();
+                            if (c == '?')
+                            {
+                                iifresult = ((string)array[aname] == "Yes");
+                                iifstage = 1;
+                            }
+                            else
+                            {
+                                ret.Append(array[aname] == null ? "" : array[aname]);
+                                ret.Append(c);
+                            }
                         }
                     }
                 }
@@ -370,7 +369,7 @@ namespace WebLearningOffline
         }
         public static string BytesToString(long byteCount)
         {
-            string[] suf = { "B", "KB", "MB", "GB", "TB", "PB", "EB" }; //Longs run out around EB
+            string[] suf = { "B", "KB", "MB", "GB", "TB", "PB", "EB" };
             if (byteCount == 0)
                 return "0" + suf[0];
             long bytes = Math.Abs(byteCount);
@@ -378,7 +377,7 @@ namespace WebLearningOffline
             double num = Math.Round(bytes / Math.Pow(1024, place), 1);
             return (Math.Sign(byteCount) * num).ToString() + suf[place];
         }
-        public static string[] dividejson(string json,string node,bool nextbracket=true)
+        public static string[] DivideJson(string json,string node,bool nextbracket=true)
         {
             int pos = json.IndexOf(node);
             if(nextbracket)pos = json.IndexOf('{', pos) + 1;

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.IO;
 using System.Net;
@@ -41,7 +39,7 @@ namespace WebLearningOffline
         {
             Uri httpUrl = new Uri(URL);
             HttpWebRequest req = (HttpWebRequest)WebRequest.Create(httpUrl);
-            req.ProtocolVersion = new System.Version("1.0");
+            req.ProtocolVersion = new Version("1.0");
             req.Method = Method;
             req.KeepAlive = false;
             if (Referer != null) req.Referer = Referer;
