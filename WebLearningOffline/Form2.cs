@@ -298,12 +298,12 @@ namespace WebLearningOffline
                             progressBar3.Value = 0;
                             label2.Text = "完成" + nextdownjob + "/" + downlist.Count + "个 " + Util.BytesToString(receivedsize + nsize) + "/" + Util.BytesToString(totalsize) + " 成功" + succ + " 失败" + (nextdownjob - succ);
                             label3.Text = "当前文件" + Util.BytesToString(nsize) + "/" + Util.BytesToString(tsize) + " " + downlist[nextdownjob].name;
-                            var req = "GET " + findpath(downlist[nextdownjob].url) + " HTTP/1.1\r\n";
-                            req += "Host: " + findhost(downlist[nextdownjob].url) + "\r\n";
+                            var req = "GET " + Util.FindPathInURL(downlist[nextdownjob].url) + " HTTP/1.1\r\n";
+                            req += "Host: " + Util.FindHostInURL(downlist[nextdownjob].url) + "\r\n";
                             req += "User-Agent: Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.82 Safari/537.36\r\n";
-                            req += "Cookie: " + cookiestostring(downlist[nextdownjob].url.Contains("n.cic.t")?mycookies: cookies) + "\r\n\r\n";
+                            req += "Cookie: " + Util.CookieToHeaderString(downlist[nextdownjob].url.Contains("n.cic.t")?mycookies: cookies) + "\r\n\r\n";
                             var array = Encoding.UTF8.GetBytes(req);
-                            client.Connect(findhost(downlist[nextdownjob].url), 80);
+                            client.Connect(Util.FindHostInURL(downlist[nextdownjob].url), 80);
                             using (var stream = client.GetStream())
                             {
                                 stream.Write(array, 0, array.Length);
@@ -329,8 +329,8 @@ namespace WebLearningOffline
                                         if (rc <= 0) throw new Exception("short read");
                                         fs.Write(buf, 0, rc);
                                         nsize += rc;
-                                        progressBar3.Value = prgchk((int)((double)nsize * 10000.0 / (double)(tsize == 0 ? 1 : tsize)));
-                                        progressBar2.Value = prgchk((int)(((double)receivedsize + nsize) * 10000 / (double)totalsize));
+                                        Util.SetProgressSafe(progressBar3, nsize, tsize);
+                                        Util.SetProgressSafe(progressBar2, receivedsize + nsize, totalsize);
                                         label2.Text = "完成" + nextdownjob + "/" + downlist.Count + "个 " + Util.BytesToString(receivedsize + nsize) + "/" + Util.BytesToString(totalsize) + " 成功" + succ + " 失败" + (nextdownjob - succ);
                                         label3.Text = "当前文件" + Util.BytesToString(nsize) + "/" + Util.BytesToString(tsize) + " " + downlist[nextdownjob].name;
                                     }
@@ -409,28 +409,7 @@ namespace WebLearningOffline
             return;
         }
 
-        private string cookiestostring(CookieCollection cookies)
-        {
-            var tmp = "";
-            foreach (Cookie cookie in cookies)
-            {
-                tmp += cookie.Name + "=" + cookie.Value + "; ";
-            }
-            if (tmp.EndsWith("; ")) tmp = tmp.Substring(0, tmp.Length - 2);
-            return tmp;
-        }
 
-        private string findhost(string url)
-        {
-            var match = Regex.Match(url, @"http:\/\/(.+?)\/").Groups[1].Value;
-            return match;
-        }
-
-        private string findpath(string url)
-        {
-            var match = Regex.Match(url, @"http:\/\/.+?(\/.*)").Groups[1].Value;
-            return match;
-        }
 
         void work(object incookies)
         {
@@ -942,12 +921,6 @@ namespace WebLearningOffline
         {
             System.Diagnostics.Process.Start("http://student.tsinghua.edu.cn/");
             linkLabel1.LinkVisited = true;
-        }
-        int prgchk(int a)
-        {
-            if (a < 0) return 0;
-            if (a > 10000) return 10000;
-            return a;
         }
     }
 }

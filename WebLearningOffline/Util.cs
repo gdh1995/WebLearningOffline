@@ -166,6 +166,37 @@ namespace WebLearningOffline
 
     public static class Util
     {
+        public static void SetProgressSafe(System.Windows.Forms.ProgressBar progress, long current, long total)
+        {
+            var value = (int)Math.Round((double)current * (progress.Maximum - progress.Minimum) / (total == 0 ? 1 : total));
+            SetProgressSafe(progress, value);
+        }
+        public static void SetProgressSafe(System.Windows.Forms.ProgressBar progress, int value)
+        {
+            if (value < progress.Minimum) value = progress.Minimum;
+            if (value > progress.Maximum) value = progress.Maximum;
+            progress.Value = value;
+        }
+        public static string FindHostInURL(string url)
+        {
+            var match = Regex.Match(url, @"http:\/\/(.+?)\/").Groups[1].Value;
+            return match;
+        }
+        public static string FindPathInURL(string url)
+        {
+            var match = Regex.Match(url, @"http:\/\/.+?(\/.*)").Groups[1].Value;
+            return match;
+        }
+        public static string CookieToHeaderString(CookieCollection cookies)
+        {
+            var tmp = "";
+            foreach (Cookie cookie in cookies)
+            {
+                tmp += cookie.Name + "=" + cookie.Value + "; ";
+            }
+            if (tmp.EndsWith("; ")) tmp = tmp.Substring(0, tmp.Length - 2);
+            return tmp;
+        }
         public static string TimestampToDate(long unixTimeStamp)
         {
             var dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0);
