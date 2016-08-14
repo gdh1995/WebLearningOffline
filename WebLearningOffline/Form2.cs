@@ -339,7 +339,7 @@ namespace WebLearningOffline
                                     {
                                         if (canceled) { nextdownjob = downlist.Count; goto fin; }
                                         rc = stream.Read(buf, 0, buf.Length);
-                                        if (rc <= 0) throw new Exception("short read");
+                                        if (rc <= 0) break;
                                         fs.Write(buf, 0, rc);
                                         nsize += rc;
                                         Util.SetProgressSafe(progressBar3, nsize, tsize);
