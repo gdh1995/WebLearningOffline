@@ -295,6 +295,8 @@ namespace WebLearningOffline
                 {
                     break;
                 }
+                var retry = 0;
+                startdown:
                 if (canceled) { nextdownjob = downlist.Count; goto fin; }
                 var local = downlist[nextdownjob].local;
                 if (!File.Exists(downlist[nextdownjob].local) || new FileInfo(local).Length != downlist[nextdownjob].size)
@@ -352,7 +354,18 @@ namespace WebLearningOffline
                         }
                         okay = true;
                     }
-                    catch (Exception) { try { File.Delete(local); } catch (Exception) { } }
+                    catch (Exception e)
+                    {
+                        Console.Write(e);
+                        try { File.Delete(local); } catch (Exception) { }
+                        retry++;
+                        if (retry < 5)
+                        {
+                            Console.WriteLine(" 重试" + retry);
+                            goto startdown;
+                        }
+                        else Console.WriteLine();
+                    }
                     if (okay) succ++;
                 }
                 else succ++;

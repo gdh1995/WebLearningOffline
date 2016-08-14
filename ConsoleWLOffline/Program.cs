@@ -159,6 +159,8 @@ namespace ConsoleWLOffline
                 {
                     break;
                 }
+                var retry = 0;
+                startdown:
                 if (canceled) { nextdownjob = downlist.Count; goto fin; }
                 var local = downlist[nextdownjob].local;
                 if (!File.Exists(downlist[nextdownjob].local) || new FileInfo(local).Length != downlist[nextdownjob].size)
@@ -173,7 +175,7 @@ namespace ConsoleWLOffline
                         using (var client = new TcpClient())
                         {
                             Console.Write("完成" + nextdownjob + "/" + downlist.Count + "个 " + Util.BytesToString(receivedsize + nsize) + "/" + Util.BytesToString(totalsize) + " 成功" + succ + " 失败" + (nextdownjob - succ));
-                            Console.WriteLine( " 当前文件" + Util.BytesToString(tsize) + " " + downlist[nextdownjob].name);
+                            Console.WriteLine(" 当前文件" + Util.BytesToString(tsize) + " " + downlist[nextdownjob].name);
                             var req = "GET " + Util.FindPathInURL(downlist[nextdownjob].url) + " HTTP/1.1\r\n";
                             req += "Host: " + Util.FindHostInURL(downlist[nextdownjob].url) + "\r\n";
                             req += "User-Agent: Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.82 Safari/537.36\r\n";
@@ -211,7 +213,18 @@ namespace ConsoleWLOffline
                         }
                         okay = true;
                     }
-                    catch (Exception e) { Console.WriteLine(e); try { File.Delete(local); } catch (Exception) { } }
+                    catch (Exception e)
+                    {
+                        Console.Write(e);
+                        try { File.Delete(local); } catch (Exception) { }
+                        retry++;
+                        if (retry < 5)
+                        {
+                            Console.WriteLine(" 重试" + retry);
+                            goto startdown;
+                        }
+                        else Console.WriteLine();
+                    }
                     if (okay) succ++;
                 }
                 else succ++;
