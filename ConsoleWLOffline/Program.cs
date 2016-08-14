@@ -142,6 +142,9 @@ namespace ConsoleWLOffline
                 if (course.selected)
                     downlist.AddRange(Util.LoadTaskList(bp + Util.GetSafePathName(course.term) + Path.DirectorySeparatorChar + Util.GetSafePathName(course.name) + Path.DirectorySeparatorChar + "downloadlist.dat"));
             });
+            var tdl = new List<DownloadTask>();
+            downlist.ForEach(t => { if (t.size > 0) tdl.Add(t); });
+            downlist = tdl;
             downlist.ForEach(t => totalsize += t.size);
             while (true)
             {
@@ -201,7 +204,7 @@ namespace ConsoleWLOffline
                         }
                         okay = true;
                     }
-                    catch (Exception) { try { File.Delete(local); } catch (Exception) { } }
+                    catch (Exception e) { Console.WriteLine(e); try { File.Delete(local); } catch (Exception) { } }
                     if (okay) succ++;
                 }
                 else succ++;
