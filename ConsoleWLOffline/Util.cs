@@ -400,6 +400,7 @@ namespace ConsoleWLOffline
         public static string[] DivideJson(string json,string node,bool nextbracket=true)
         {
             int pos = json.IndexOf(node);
+            if (pos < 0) return new string[] { };
             if(nextbracket)pos = json.IndexOf('{', pos) + 1;
             var ret = new List<string>();
             while (true)
