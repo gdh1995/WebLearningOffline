@@ -279,7 +279,6 @@ namespace WebLearningOffline
             downlist.ForEach(t => { if (t.size > 0) tdl.Add(t); });
             downlist = tdl;
             downlist.ForEach(t => totalsize += t.size);
-            downlist.ForEach(t => totalsize += t.size);
             while (true)
             {
                 if (nextdownjob >= downlist.Count)
