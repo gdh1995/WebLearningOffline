@@ -143,7 +143,14 @@ namespace ConsoleWLOffline
                     downlist.AddRange(Util.LoadTaskList(bp + Util.GetSafePathName(course.term) + Path.DirectorySeparatorChar + Util.GetSafePathName(course.name) + Path.DirectorySeparatorChar + "downloadlist.dat"));
             });
             var tdl = new List<DownloadTask>();
-            downlist.ForEach(t => { if (t.size > 0) tdl.Add(t); });
+            downlist.ForEach(t => { if (t.size > 0) {
+                    var same = false;
+                    foreach (var item in tdl)
+                    {
+                        if (item.local == t.local) same = true;
+                    }
+                    if(!same)tdl.Add(t);
+                } });
             downlist = tdl;
             downlist.ForEach(t => totalsize += t.size);
             while (true)
