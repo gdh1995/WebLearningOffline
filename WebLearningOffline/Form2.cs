@@ -863,7 +863,7 @@ namespace WebLearningOffline
                     titem.Add("HasHomework", File.Exists(home + "课程作业.html") ? "Yes" : "No");
                     titem.Add("BasePath", Util.GetSafePathName(course.term) + '/' + Util.GetSafePathName(course.name));
                 }
-                catch (FormatException ex)
+                catch (Exception ex)
                 {
                     listitem(i, "失败：" + ex.Message);
                     lock (varlock)
