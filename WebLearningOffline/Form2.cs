@@ -235,6 +235,7 @@ namespace WebLearningOffline
         void run()
         {
             SystemSleepManagement.PreventSleep(false);
+            Util.PostLog("window start run");
             var threads = new Thread[6];
             var main = new Dictionary<string, object>();
             var info = Http.Get("http://learn.tsinghua.edu.cn/MultiLanguage/vspace/vspace_userinfo1.jsp", out cookies, cookiesin: cookies);
@@ -384,6 +385,7 @@ namespace WebLearningOffline
                 loginform.coursechecked[i] = checkedListBox2.GetItemChecked(i);
 
             SystemSleepManagement.ResotreSleep();
+            Util.PostLog("window fin " + haserror + " " + courses.Count + " " + succ + " " + downlist.Count);
             if (haserror > 0 || succ < downlist.Count) MessageBox.Show("有部分内容下载失败，可以再次运行，下载余下的内容");
             else MessageBox.Show("下载全部成功！");
             try

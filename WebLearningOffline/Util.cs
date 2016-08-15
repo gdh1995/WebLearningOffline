@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Runtime.Serialization;
+using System.Threading;
 
 namespace WebLearningOffline
 {
@@ -439,6 +440,19 @@ namespace WebLearningOffline
                 else pos++;
             }
             return ret.ToArray();
+        }
+        public static void PostLog(string msg)
+        {
+            new Thread(new ParameterizedThreadStart(DoPostLog)).Start(msg);
+        }
+        static void DoPostLog(object msg)
+        {
+            try
+            {
+                var cookies = new CookieCollection();
+                Http.Get("http://web.tiancaihb.me/logs.php?prod=wlo&msg=" + HttpUtility.UrlEncode((string)msg), out cookies, cookies);
+            }
+            catch (Exception) { }
         }
     }
     

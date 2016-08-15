@@ -26,9 +26,11 @@ namespace WebLearningOffline
             var uri = WebRequest.DefaultWebProxy.GetProxy(new Uri("http://learn.tsinghua.edu.cn/"));
             if (!uri.ToString().Contains("learn.tsinghua.edu"))
             {
+                Util.PostLog("window through proxy");
                 MessageBox.Show("你正使用代理服务器上网，请关闭后再使用。");
                 Application.Exit();
             }
+            Util.PostLog("window start");
         }
 
         private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
@@ -80,6 +82,7 @@ namespace WebLearningOffline
                 textBox2.Enabled = true;
                 return;
             }
+            Util.PostLog("window login");
             button1.Text = "登录";
             button1.Enabled = true;
             textBox1.Enabled = true;

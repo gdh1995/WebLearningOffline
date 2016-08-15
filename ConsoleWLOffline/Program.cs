@@ -33,9 +33,11 @@ namespace ConsoleWLOffline
             var uri = WebRequest.DefaultWebProxy.GetProxy(new Uri("http://learn.tsinghua.edu.cn/"));
             if (!uri.ToString().Contains("learn.tsinghua.edu"))
             {
+                Util.PostLog("console through proxy");
                 Console.WriteLine("你正使用代理服务器上网，请关闭后再使用。");
                 return;
             }
+            Util.PostLog("console start");
             Console.Write("用户名：");
             var userid = Console.ReadLine();
             Console.Write("密码：");
@@ -54,7 +56,7 @@ namespace ConsoleWLOffline
                 Console.WriteLine("登录失败！原因：\r\n" + e.Message);
                 return;
             }
-
+            Util.PostLog("console login");
             Console.WriteLine("登录成功，载入课程列表...");
             LoadCourses();
             Console.WriteLine("共" + courses.Count + "门课程，开始下载");
@@ -115,6 +117,7 @@ namespace ConsoleWLOffline
 
         static void run()
         {
+            Util.PostLog("console start run");
             var main = new Dictionary<string, object>();
             var info = Http.Get("http://learn.tsinghua.edu.cn/MultiLanguage/vspace/vspace_userinfo1.jsp", out cookies, cookiesin: cookies);
             var match = Regex.Match(info, @"学生姓名<.*?tr_l2.>(.*?)<", RegexOptions.Singleline);
@@ -233,6 +236,7 @@ namespace ConsoleWLOffline
             fin:;
             }
 
+            Util.PostLog("console fin " + haserror + " " + courses.Count + " " + succ + " " + downlist.Count);
             if (haserror > 0 || succ < downlist.Count) Console.WriteLine("有部分内容下载失败，可以再次运行，下载余下的内容");
             else Console.WriteLine("下载全部成功！");
             try
