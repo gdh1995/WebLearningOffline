@@ -42,9 +42,9 @@
       this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
       this.button1.Font = new System.Drawing.Font("幼圆", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
       this.button1.ForeColor = System.Drawing.Color.Transparent;
-      this.button1.Location = new System.Drawing.Point(278, 248);
+      this.button1.Location = new System.Drawing.Point(272, 251);
       this.button1.Name = "button1";
-      this.button1.Size = new System.Drawing.Size(183, 39);
+      this.button1.Size = new System.Drawing.Size(178, 39);
       this.button1.TabIndex = 3;
       this.button1.Text = "登    录";
       this.button1.UseVisualStyleBackColor = false;
@@ -53,7 +53,7 @@
       // textBox2
       // 
       this.textBox2.Font = new System.Drawing.Font("宋体", 18F);
-      this.textBox2.Location = new System.Drawing.Point(254, 184);
+      this.textBox2.Location = new System.Drawing.Point(253, 187);
       this.textBox2.Name = "textBox2";
       this.textBox2.PasswordChar = '*';
       this.textBox2.Size = new System.Drawing.Size(287, 35);
@@ -63,7 +63,7 @@
       // textBox1
       // 
       this.textBox1.Font = new System.Drawing.Font("宋体", 18F);
-      this.textBox1.Location = new System.Drawing.Point(254, 118);
+      this.textBox1.Location = new System.Drawing.Point(253, 122);
       this.textBox1.Name = "textBox1";
       this.textBox1.Size = new System.Drawing.Size(287, 35);
       this.textBox1.TabIndex = 1;
@@ -76,7 +76,7 @@
       this.BackColor = System.Drawing.Color.White;
       this.BackgroundImage = global::WebLearningOffline.Properties.Resources.login_bg;
       this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
-      this.ClientSize = new System.Drawing.Size(582, 366);
+      this.ClientSize = new System.Drawing.Size(568, 366);
       this.Controls.Add(this.button1);
       this.Controls.Add(this.textBox2);
       this.Controls.Add(this.textBox1);

@@ -65,7 +65,17 @@ namespace WebLearningOffline.Properties {
         /// </summary>
         internal static System.Drawing.Bitmap login_bg {
             get {
-                object obj = ResourceManager.GetObject("login-bg", resourceCulture);
+                object obj = ResourceManager.GetObject("login_bg", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   查找 System.Drawing.Bitmap 类型的本地化资源。
+        /// </summary>
+        internal static System.Drawing.Bitmap stu_logo {
+            get {
+                object obj = ResourceManager.GetObject("stu_logo", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

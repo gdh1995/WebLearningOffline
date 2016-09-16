@@ -4,6 +4,10 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <!-- replace <title>课程作业 - $CourseName</title> -->
 <style>
+html { padding: 1em; }
+.T { margin-bottom: 1em; }
+.t1 { font-family: 黑体; font-size: 2.5em; }
+.t2 { font-family: 黑体; font-size: 1.8em; color: #555; }
 td {
   border: solid 1px black;
 }
@@ -21,7 +25,7 @@ td {
 </style>
 </head>
 <body>
-<!-- replace <h2>课程作业 - $CourseName ($CourseTerm)</h2> -->
+<!-- replace <div class="T"><span class="t1">课程作业</span> - <span class="t2">$CourseName ($CourseTerm)</span></div> -->
 <table style="border:1px solid black; border-collapse:collapse;"> 
 <!-- foreach Homeworks <tr><td class="color">作业题目</td><td class="lightcolor">$HomeworkName</td><td class="color">生效日期</td><td class="lightcolor">$HomeworkStart</td><td class="color">截止日期</td><td class="lightcolor">$HomeworkEnd</td><td class="color">提交状态</td><td class="lightcolor">$HomeworkSubmitted?已经提交 :: 尚未提交 :: </td></tr>  <tr><td class="lightcolor">作业说明</td><td colspan="5" class="nocolor">$HomeworkHandout</td><td class="lightcolor">作业附件</td><td class="nocolor">$HomeworkHasAttnOut?<a href="$HomeworkAttnOutLocal">$HomeworkAttnOutName</a> :: 无相关文件 :: </td></tr>  <tr><td class="lightcolor">上交作业内容</td><td colspan="5" class="nocolor">$HomeworkHandin</td><td class="lightcolor">上交作业附件</td><td class="nocolor">$HomeworkHasAttnIn?<a href="$HomeworkAttnInLocal">$HomeworkAttnInName</a> :: 无相关文件 :: </td></tr>   $HomeworkScored? <tr><td class="lightcolor">批阅老师</td><td class="nocolor" colspan="3">$HomeworkScorer</td><td class="lightcolor">批阅日期</td><td class="nocolor">$HomeworkScoreDate</td><td class="lightcolor">得分</td><td class="nocolor">$HomeworkScore</td></tr>  <tr><td class="lightcolor">评语</td><td colspan="5" class="nocolor">$HomeworkScoreComment</td><td class="lightcolor">评语附件</td><td class="nocolor"><a href="$HomeworkScoreAttnLocal">$HomeworkScoreAttnName</a></td></tr> :: :: -->
 </table>

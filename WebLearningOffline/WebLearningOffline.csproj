@@ -120,6 +120,7 @@
   <ItemGroup>
     <None Include="res\login-bg.jpg" />
     <Content Include="HtmlAgilityPack.dll" />
+    <None Include="res\login-bg.png" />
     <Content Include="res\网络学堂.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-      System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form2));
       this.groupBox1 = new System.Windows.Forms.GroupBox();
       this.checkedListBox2 = new System.Windows.Forms.CheckedListBox();
       this.groupBox2 = new System.Windows.Forms.GroupBox();
@@ -40,8 +39,6 @@
       this.radioButton1 = new System.Windows.Forms.RadioButton();
       this.button2 = new System.Windows.Forms.Button();
       this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
-      this.pictureBox1 = new System.Windows.Forms.PictureBox();
-      this.linkLabel1 = new System.Windows.Forms.LinkLabel();
       this.groupBox4 = new System.Windows.Forms.GroupBox();
       this.label1 = new System.Windows.Forms.Label();
       this.progressBar1 = new System.Windows.Forms.ProgressBar();
@@ -52,10 +49,10 @@
       this.label2 = new System.Windows.Forms.Label();
       this.progressBar3 = new System.Windows.Forms.ProgressBar();
       this.progressBar2 = new System.Windows.Forms.ProgressBar();
+      this.label6 = new System.Windows.Forms.Label();
       this.groupBox1.SuspendLayout();
       this.groupBox2.SuspendLayout();
       this.groupBox3.SuspendLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       this.groupBox4.SuspendLayout();
       this.groupBox5.SuspendLayout();
       this.SuspendLayout();
@@ -63,9 +60,10 @@
       // groupBox1
       // 
       this.groupBox1.Controls.Add(this.checkedListBox2);
+      this.groupBox1.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
       this.groupBox1.Location = new System.Drawing.Point(13, 9);
       this.groupBox1.Name = "groupBox1";
-      this.groupBox1.Size = new System.Drawing.Size(383, 309);
+      this.groupBox1.Size = new System.Drawing.Size(383, 348);
       this.groupBox1.TabIndex = 0;
       this.groupBox1.TabStop = false;
       this.groupBox1.Text = "选择要下载的课程";
@@ -75,21 +73,23 @@
       this.checkedListBox2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(214)))), ((int)(((byte)(224)))), ((int)(((byte)(225)))));
       this.checkedListBox2.CheckOnClick = true;
       this.checkedListBox2.Enabled = false;
+      this.checkedListBox2.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
       this.checkedListBox2.FormattingEnabled = true;
       this.checkedListBox2.Items.AddRange(new object[] {
             "正在加载课程列表……"});
-      this.checkedListBox2.Location = new System.Drawing.Point(6, 20);
+      this.checkedListBox2.Location = new System.Drawing.Point(6, 24);
       this.checkedListBox2.Name = "checkedListBox2";
-      this.checkedListBox2.Size = new System.Drawing.Size(372, 276);
+      this.checkedListBox2.Size = new System.Drawing.Size(372, 310);
       this.checkedListBox2.TabIndex = 0;
       this.checkedListBox2.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.checkedListBox2_ItemCheck);
       // 
       // groupBox2
       // 
       this.groupBox2.Controls.Add(this.checkedListBox1);
+      this.groupBox2.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
       this.groupBox2.Location = new System.Drawing.Point(402, 9);
       this.groupBox2.Name = "groupBox2";
-      this.groupBox2.Size = new System.Drawing.Size(218, 121);
+      this.groupBox2.Size = new System.Drawing.Size(218, 128);
       this.groupBox2.TabIndex = 1;
       this.groupBox2.TabStop = false;
       this.groupBox2.Text = "下载内容";
@@ -98,6 +98,7 @@
       // 
       this.checkedListBox1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(214)))), ((int)(((byte)(224)))), ((int)(((byte)(225)))));
       this.checkedListBox1.CheckOnClick = true;
+      this.checkedListBox1.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
       this.checkedListBox1.FormattingEnabled = true;
       this.checkedListBox1.Items.AddRange(new object[] {
             "全选",
@@ -105,9 +106,9 @@
             "课程信息",
             "课程文件",
             "课程作业"});
-      this.checkedListBox1.Location = new System.Drawing.Point(6, 20);
+      this.checkedListBox1.Location = new System.Drawing.Point(6, 24);
       this.checkedListBox1.Name = "checkedListBox1";
-      this.checkedListBox1.Size = new System.Drawing.Size(206, 84);
+      this.checkedListBox1.Size = new System.Drawing.Size(206, 94);
       this.checkedListBox1.TabIndex = 1;
       this.checkedListBox1.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.checkedListBox1_ItemCheck);
       // 
@@ -117,7 +118,8 @@
       this.groupBox3.Controls.Add(this.textBox1);
       this.groupBox3.Controls.Add(this.radioButton2);
       this.groupBox3.Controls.Add(this.radioButton1);
-      this.groupBox3.Location = new System.Drawing.Point(402, 136);
+      this.groupBox3.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+      this.groupBox3.Location = new System.Drawing.Point(402, 144);
       this.groupBox3.Name = "groupBox3";
       this.groupBox3.Size = new System.Drawing.Size(218, 99);
       this.groupBox3.TabIndex = 1;
@@ -126,7 +128,8 @@
       // 
       // button1
       // 
-      this.button1.Location = new System.Drawing.Point(160, 66);
+      this.button1.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+      this.button1.Location = new System.Drawing.Point(160, 65);
       this.button1.Name = "button1";
       this.button1.Size = new System.Drawing.Size(50, 23);
       this.button1.TabIndex = 2;
@@ -136,7 +139,8 @@
       // 
       // textBox1
       // 
-      this.textBox1.Location = new System.Drawing.Point(6, 68);
+      this.textBox1.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+      this.textBox1.Location = new System.Drawing.Point(6, 67);
       this.textBox1.Name = "textBox1";
       this.textBox1.ReadOnly = true;
       this.textBox1.Size = new System.Drawing.Size(149, 21);
@@ -145,31 +149,33 @@
       // radioButton2
       // 
       this.radioButton2.AutoSize = true;
-      this.radioButton2.Location = new System.Drawing.Point(6, 42);
+      this.radioButton2.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+      this.radioButton2.Location = new System.Drawing.Point(6, 46);
       this.radioButton2.Name = "radioButton2";
-      this.radioButton2.Size = new System.Drawing.Size(59, 16);
+      this.radioButton2.Size = new System.Drawing.Size(71, 16);
       this.radioButton2.TabIndex = 0;
-      this.radioButton2.Text = "自定义";
+      this.radioButton2.Text = "自定义：";
       this.radioButton2.UseVisualStyleBackColor = true;
       // 
       // radioButton1
       // 
       this.radioButton1.AutoSize = true;
       this.radioButton1.Checked = true;
-      this.radioButton1.Location = new System.Drawing.Point(6, 20);
+      this.radioButton1.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+      this.radioButton1.Location = new System.Drawing.Point(6, 24);
       this.radioButton1.Name = "radioButton1";
-      this.radioButton1.Size = new System.Drawing.Size(95, 16);
+      this.radioButton1.Size = new System.Drawing.Size(83, 16);
       this.radioButton1.TabIndex = 0;
       this.radioButton1.TabStop = true;
-      this.radioButton1.Text = "放在桌面上！";
+      this.radioButton1.Text = "放在桌面上";
       this.radioButton1.UseVisualStyleBackColor = true;
       this.radioButton1.CheckedChanged += new System.EventHandler(this.radioButton1_CheckedChanged);
       // 
       // button2
       // 
       this.button2.Enabled = false;
-      this.button2.Font = new System.Drawing.Font("宋体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-      this.button2.Location = new System.Drawing.Point(402, 241);
+      this.button2.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+      this.button2.Location = new System.Drawing.Point(402, 257);
       this.button2.Name = "button2";
       this.button2.Size = new System.Drawing.Size(218, 34);
       this.button2.TabIndex = 2;
@@ -177,37 +183,11 @@
       this.button2.UseVisualStyleBackColor = true;
       this.button2.Click += new System.EventHandler(this.button2_Click);
       // 
-      // pictureBox1
-      // 
-      this.pictureBox1.Cursor = System.Windows.Forms.Cursors.Hand;
-      this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
-      this.pictureBox1.Location = new System.Drawing.Point(408, 278);
-      this.pictureBox1.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
-      this.pictureBox1.Name = "pictureBox1";
-      this.pictureBox1.Size = new System.Drawing.Size(115, 40);
-      this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-      this.pictureBox1.TabIndex = 6;
-      this.pictureBox1.TabStop = false;
-      this.pictureBox1.Click += new System.EventHandler(this.pictureBox1_Click);
-      // 
-      // linkLabel1
-      // 
-      this.linkLabel1.AutoSize = true;
-      this.linkLabel1.Font = new System.Drawing.Font("宋体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-      this.linkLabel1.Location = new System.Drawing.Point(540, 302);
-      this.linkLabel1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-      this.linkLabel1.Name = "linkLabel1";
-      this.linkLabel1.Size = new System.Drawing.Size(72, 16);
-      this.linkLabel1.TabIndex = 5;
-      this.linkLabel1.TabStop = true;
-      this.linkLabel1.Text = "学生清华";
-      this.linkLabel1.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
-      // 
       // groupBox4
       // 
       this.groupBox4.Controls.Add(this.label1);
       this.groupBox4.Controls.Add(this.progressBar1);
-      this.groupBox4.Location = new System.Drawing.Point(13, 322);
+      this.groupBox4.Location = new System.Drawing.Point(13, 368);
       this.groupBox4.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
       this.groupBox4.Name = "groupBox4";
       this.groupBox4.Padding = new System.Windows.Forms.Padding(2, 1, 2, 1);
@@ -228,7 +208,7 @@
       // 
       // progressBar1
       // 
-      this.progressBar1.Location = new System.Drawing.Point(6, 41);
+      this.progressBar1.Location = new System.Drawing.Point(6, 35);
       this.progressBar1.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
       this.progressBar1.Name = "progressBar1";
       this.progressBar1.Size = new System.Drawing.Size(594, 12);
@@ -243,7 +223,7 @@
       this.groupBox5.Controls.Add(this.label2);
       this.groupBox5.Controls.Add(this.progressBar3);
       this.groupBox5.Controls.Add(this.progressBar2);
-      this.groupBox5.Location = new System.Drawing.Point(13, 381);
+      this.groupBox5.Location = new System.Drawing.Point(13, 427);
       this.groupBox5.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
       this.groupBox5.Name = "groupBox5";
       this.groupBox5.Padding = new System.Windows.Forms.Padding(2, 1, 2, 1);
@@ -293,34 +273,42 @@
       // 
       // progressBar3
       // 
-      this.progressBar3.Location = new System.Drawing.Point(75, 51);
+      this.progressBar3.Location = new System.Drawing.Point(84, 51);
       this.progressBar3.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
       this.progressBar3.Maximum = 10000;
       this.progressBar3.Name = "progressBar3";
-      this.progressBar3.Size = new System.Drawing.Size(524, 12);
+      this.progressBar3.Size = new System.Drawing.Size(515, 12);
       this.progressBar3.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
       this.progressBar3.TabIndex = 2;
       // 
       // progressBar2
       // 
-      this.progressBar2.Location = new System.Drawing.Point(75, 70);
+      this.progressBar2.Location = new System.Drawing.Point(84, 70);
       this.progressBar2.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
       this.progressBar2.Maximum = 10000;
       this.progressBar2.Name = "progressBar2";
-      this.progressBar2.Size = new System.Drawing.Size(524, 12);
+      this.progressBar2.Size = new System.Drawing.Size(515, 12);
       this.progressBar2.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
       this.progressBar2.TabIndex = 2;
+      // 
+      // label6
+      // 
+      this.label6.Image = global::WebLearningOffline.Properties.Resources.stu_logo;
+      this.label6.Location = new System.Drawing.Point(406, 310);
+      this.label6.Name = "label6";
+      this.label6.Size = new System.Drawing.Size(214, 47);
+      this.label6.TabIndex = 9;
+      this.label6.Click += new System.EventHandler(this.label6_Click);
       // 
       // Form2
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(174)))), ((int)(((byte)(219)))), ((int)(((byte)(224)))));
-      this.ClientSize = new System.Drawing.Size(628, 479);
+      this.ClientSize = new System.Drawing.Size(628, 524);
+      this.Controls.Add(this.label6);
       this.Controls.Add(this.groupBox4);
       this.Controls.Add(this.groupBox5);
-      this.Controls.Add(this.pictureBox1);
-      this.Controls.Add(this.linkLabel1);
       this.Controls.Add(this.button2);
       this.Controls.Add(this.groupBox3);
       this.Controls.Add(this.groupBox2);
@@ -335,12 +323,10 @@
       this.groupBox2.ResumeLayout(false);
       this.groupBox3.ResumeLayout(false);
       this.groupBox3.PerformLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
       this.groupBox4.ResumeLayout(false);
       this.groupBox5.ResumeLayout(false);
       this.groupBox5.PerformLayout();
       this.ResumeLayout(false);
-      this.PerformLayout();
 
         }
 
@@ -357,8 +343,6 @@
         private System.Windows.Forms.RadioButton radioButton1;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1;
-        private System.Windows.Forms.PictureBox pictureBox1;
-        private System.Windows.Forms.LinkLabel linkLabel1;
         private System.Windows.Forms.GroupBox groupBox4;
         public System.Windows.Forms.Label label1;
         public System.Windows.Forms.ProgressBar progressBar1;
@@ -369,5 +353,6 @@
         public System.Windows.Forms.Label label2;
         public System.Windows.Forms.ProgressBar progressBar3;
         public System.Windows.Forms.ProgressBar progressBar2;
-    }
+    private System.Windows.Forms.Label label6;
+  }
 }
